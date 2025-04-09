@@ -18,4 +18,6 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 COPY . .
 
-CMD ["python", "src/main.py"]
+EXPOSE 8000
+
+CMD ["fastapi", "run", "src/main.py"]
