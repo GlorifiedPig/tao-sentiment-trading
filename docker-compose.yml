@@ -14,6 +14,18 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-
+  
+  tao-api:
+    build:
+      context: ./tao-api
+    restart: on-failure:3
+    env_file:
+      - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - tao-api:/app/data
 volumes:
   mysql:
+  tao-api:
