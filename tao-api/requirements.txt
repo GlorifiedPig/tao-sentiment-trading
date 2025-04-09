@@ -1,2 +1,4 @@
 mysqlclient
 fastapi[standard]
+bittensor
+async-substrate-interface
