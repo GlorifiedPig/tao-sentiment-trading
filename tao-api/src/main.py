@@ -1,3 +1,7 @@
+
+# TODO: Caching layer.
+# TODO: Staking logic.
+
 # Imports
 from fastapi import FastAPI
 from bittensor.core.chain_data import decode_account_id
@@ -10,6 +14,8 @@ import time
 example_hotkey = "5FvFLiEWbDn5xdhjHt3M3E7ndjRYVr7ou8UjcvqhsMddxTJg"
 example_netuid = 1
 
+# TODO: netuid and hotkey args are optional, if not provided return data for all netuids and their hotkeys.
+# If just hotkey is ommitted, returns data for all netuids and their hotkeys.
 async def get_tao_dividends_per_subnet(netuid: int, hotkey: str):
     async with AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443",
                                        ss58_format=SS58_FORMAT) as substrate:
@@ -32,6 +38,7 @@ async def get_tao_dividends_per_subnet(netuid: int, hotkey: str):
 print(asyncio.run(get_tao_dividends_per_subnet(example_netuid, example_hotkey)))
 
 # Routes
+# TODO: Authentication
 app = FastAPI()
 
 @app.get("/")
