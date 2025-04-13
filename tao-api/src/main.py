@@ -53,7 +53,7 @@ async def get_tao_dividends_per_subnet(netuid: int, hotkey: str) -> float:
     async with AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443", ss58_format=SS58_FORMAT) as substrate:
         result = await substrate.query("SubtensorModule", "TaoDividendsPerSubnet", [netuid, hotkey])
         tao_redis_instance.set_tao_dividends(result.value, netuid, hotkey)
-        return result.value
+        return float(result.value)
 
 async def get_tao_dividends_per_subnet_netuid(netuid: int) -> float:
     """Fetches TaoDividendsPerSubnet value with our specified netuid.
@@ -91,7 +91,7 @@ async def get_tao_dividends_per_subnet_netuid(netuid: int) -> float:
 
         tao_redis_instance.set_tao_dividends(total_dividends, netuid)
 
-        return total_dividends
+        return float(total_dividends)
 
 async def get_tao_dividends_per_subnet_all() -> float:
     """Fetches TaoDividendsPerSubnet value with all netuids.
@@ -133,7 +133,7 @@ async def get_tao_dividends_per_subnet_all() -> float:
 
         tao_redis_instance.set_tao_dividends(total_dividends)
 
-        return total_dividends
+        return float(total_dividends)
 
 # Routes
 # TODO: Authentication
@@ -160,6 +160,10 @@ async def tao_dividends(netuid: Optional[int] = None, hotkey: Optional[str] = No
         "cached": False, # TODO,
         "stake_tx_triggered": False # TODO
     }
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
