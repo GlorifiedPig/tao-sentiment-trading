@@ -35,8 +35,6 @@ async def get_tao_dividends_per_subnet(netuid: int, hotkey: str):
 
         return results
 
-print(asyncio.run(get_tao_dividends_per_subnet(example_netuid, example_hotkey)))
-
 # Routes
 # TODO: Authentication
 app = FastAPI()
