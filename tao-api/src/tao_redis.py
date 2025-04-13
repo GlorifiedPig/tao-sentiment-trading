@@ -41,4 +41,4 @@ class TaoRedis:
         hotkey_part = hotkey if hotkey is not None else "*"
         key = f"tao_dividends:{netuid_part}:{hotkey_part}"
 
-        self.redis.set(key, dividends, ex=TAO_DIVIDEND_EXPIRY_SECONDS)
+        self.redis.set(key, dividends, ex=TAO_DIVIDEND_EXPIRY_SECONDS) # TODO: Is this expiry time in seconds?

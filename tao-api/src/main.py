@@ -87,7 +87,7 @@ async def get_tao_dividends_per_subnet_netuid(netuid: int) -> float:
         total_dividends: float = 0
 
         async for k, v in result:
-            total_dividends += v.value
+            total_dividends += v.value # TODO Is this the right way to be fetching the totals?
 
         tao_redis_instance.set_tao_dividends(total_dividends, netuid)
 
@@ -129,14 +129,13 @@ async def get_tao_dividends_per_subnet_all() -> float:
         for future in asyncio.as_completed(tasks):
             result = await future
             for k, v in result:
-                total_dividends += v.value
+                total_dividends += v.value # TODO Is this the right way to be fetching the totals?
 
         tao_redis_instance.set_tao_dividends(total_dividends)
 
         return float(total_dividends)
 
 # Routes
-# TODO: Authentication
 app = FastAPI()
 
 @app.get("/")
@@ -152,6 +151,10 @@ async def tao_dividends(netuid: Optional[int] = None, hotkey: Optional[str] = No
         dividends = await get_tao_dividends_per_subnet_netuid(netuid)
     else:
         dividends = await get_tao_dividends_per_subnet_all()
+    
+    # TODO: Error handling.
+    # TODO: Invalid netuid / hotkey handling.
+    # TODO: Authentication.
 
     return {
         "netuid": netuid,
