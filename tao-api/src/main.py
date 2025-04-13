@@ -163,6 +163,7 @@ async def tao_dividends(netuid: Optional[int] = None, hotkey: Optional[str] = No
 
 @app.get("/health")
 async def health():
+    """This route always returns a 200 status code and a JSON object with the status "ok"."""
     return {"status": "ok"}
 
 if __name__ == "__main__":
