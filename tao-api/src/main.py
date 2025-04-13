@@ -3,7 +3,7 @@
 
 # Imports
 from typing import Optional, Annotated
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from bittensor.core.settings import SS58_FORMAT
 from async_substrate_interface import AsyncSubstrateInterface
@@ -15,6 +15,8 @@ import uvicorn
 # Configuration
 example_hotkey: str = "5FFApaS75bv5pJHfAp2FVLBj9ZaXuFDjEypsaBNc1wCfe52v"
 example_netuid: int = 18
+default_username: str = "admin"
+default_password: str = "admin"
 redis_host: str = config("REDIS_HOST", default="localhost")
 redis_port: int = config("REDIS_PORT", default=6379)
 redis_db: int = config("REDIS_DB", default=0)
@@ -128,7 +130,14 @@ app = FastAPI(
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-@app.get("tao_dividends",
+@app.post("/token",
+         tags=["auth"],
+         summary="Login to the API.",
+         response_description="Returns a JSON object with the login token.")
+async def login(username: str, password: str):
+    pass
+
+@app.get("/tao_dividends",
          tags=["tao"],
          summary="Fetch Tao dividends.",
          response_description="Returns a JSON object with the dividends value.")
