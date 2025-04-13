@@ -16,7 +16,7 @@ example_netuid = 1
 
 # TODO: netuid and hotkey args are optional, if not provided return data for all netuids and their hotkeys.
 # If just hotkey is ommitted, returns data for all netuids and their hotkeys.
-async def get_tao_dividends_per_subnet(netuid: int, hotkey: str):
+async def get_tao_dividends_per_subnet(netuid: int, hotkey: str) -> float:
     async with AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443",
                                        ss58_format=SS58_FORMAT) as substrate:
         block_hash = await substrate.get_chain_head()
@@ -27,13 +27,16 @@ async def get_tao_dividends_per_subnet(netuid: int, hotkey: str):
             block_hash=block_hash
         )
         
-        results = []
+        total_dividends: float = 0
+
+        results: list[tuple[str, float]] = []
         async for k, v in result:
             decoded_key = decode_account_id(k)
             if decoded_key == hotkey:
                 results.append((decoded_key, v.value)) # TODO: Check if there is a way we can query the hotkey directly instead of filtering it in the for loop.
+                total_dividends += v.value
 
-        return results
+        return total_dividends
 
 # Routes
 # TODO: Authentication
@@ -46,4 +49,10 @@ async def root():
 @app.get("/api/v1/tao_dividends/{netuid}/{hotkey}")
 async def get_dividends(netuid: int, hotkey: str):
     dividends = await get_tao_dividends_per_subnet(netuid, hotkey)
-    return {"tao_dividends": dividends}
+    return {
+        "netuid": netuid,
+        "hotkey": hotkey,
+        "dividend": dividends,
+        "cached": False, # TODO,
+        "stake_tx_triggered": False # TODO
+    }
