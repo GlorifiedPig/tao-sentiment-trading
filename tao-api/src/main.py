@@ -3,6 +3,7 @@
 # TODO: Staking logic.
 
 # Imports
+from typing import Optional
 from fastapi import FastAPI
 from bittensor.core.chain_data import decode_account_id
 from bittensor.core.settings import SS58_FORMAT
@@ -78,7 +79,7 @@ async def root():
     return {"message": "Hello World"}
 
 @app.get("/api/v1/tao_dividends")
-async def tao_dividends(netuid: int | None = None, hotkey: str | None = None):
+async def tao_dividends(netuid: Optional[int] = None, hotkey: Optional[str] = None):
     if netuid is not None and hotkey is not None:
         dividends = await get_tao_dividends_per_subnet(netuid, hotkey)
     elif netuid is not None:
