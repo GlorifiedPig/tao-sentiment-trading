@@ -5,14 +5,12 @@
 # Imports
 from typing import Optional
 from fastapi import FastAPI
-from bittensor.core.chain_data import decode_account_id
 from bittensor.core.settings import SS58_FORMAT
 from async_substrate_interface import AsyncSubstrateInterface
 from tao_redis import TaoRedis
 from decouple import config
 import asyncio
 import uvicorn
-import time
 
 # Configuration
 example_hotkey: str = "5FFApaS75bv5pJHfAp2FVLBj9ZaXuFDjEypsaBNc1wCfe52v"
@@ -117,13 +115,20 @@ async def get_tao_dividends_per_subnet_all() -> float:
         return float(total_dividends)
 
 # Routes
-app = FastAPI()
+app = FastAPI(
+    title="Tao Dividends API",
+    description="An API to fetch Tao dividends from the blockchain.",
+    contact={
+        "name": "Ryan Cherry",
+        "url": "https://github.com/GlorifiedPig",
+        "email": "ryan@glorifiedstudios.com"
+    }
+)
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-@app.get("/api/v1/tao_dividends")
+@app.get("/api/v1/tao_dividends",
+         tags=["tao"],
+         summary="Fetch Tao dividends.",
+         response_description="Returns a JSON object with the dividends value.")
 async def tao_dividends(netuid: Optional[int] = None, hotkey: Optional[str] = None):
     cached: bool
     dividends: float
@@ -156,9 +161,11 @@ async def tao_dividends(netuid: Optional[int] = None, hotkey: Optional[str] = No
         "stake_tx_triggered": False # TODO
     }
 
-@app.get("/health")
+@app.get("/health",
+         tags=["health"],
+         summary="Check the health of the API.",
+         response_description="Returns a 200 status code and a JSON object with the status 'ok'.")
 async def health():
-    """This route always returns a 200 status code and a JSON object with the status "ok"."""
     return {"status": "ok"}
 
 if __name__ == "__main__":
