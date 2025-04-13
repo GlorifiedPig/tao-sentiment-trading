@@ -8,35 +8,17 @@ from bittensor.core.chain_data import decode_account_id
 from bittensor.core.settings import SS58_FORMAT
 from async_substrate_interface import AsyncSubstrateInterface
 import asyncio
+import uvicorn
 import time
 
 # Logic
 example_hotkey = "5FvFLiEWbDn5xdhjHt3M3E7ndjRYVr7ou8UjcvqhsMddxTJg"
 example_netuid = 1
 
-# TODO: netuid and hotkey args are optional, if not provided return data for all netuids and their hotkeys.
-# If just hotkey is ommitted, returns data for all netuids and their hotkeys.
 async def get_tao_dividends_per_subnet(netuid: int, hotkey: str) -> float:
-    async with AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443",
-                                       ss58_format=SS58_FORMAT) as substrate:
-        block_hash = await substrate.get_chain_head()
-        result = await substrate.query_map(
-            module="SubtensorModule",
-            storage_function="TaoDividendsPerSubnet",
-            params=[netuid],
-            block_hash=block_hash
-        )
-        
-        total_dividends: float = 0
-
-        results: list[tuple[str, float]] = []
-        async for k, v in result:
-            decoded_key = decode_account_id(k)
-            if decoded_key == hotkey:
-                results.append((decoded_key, v.value)) # TODO: Check if there is a way we can query the hotkey directly instead of filtering it in the for loop.
-                total_dividends += v.value
-
-        return total_dividends
+    async with AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443", ss58_format=SS58_FORMAT) as substrate:
+        result = await substrate.query("SubtensorModule", "TaoDividendsPerSubnet", [netuid, hotkey])
+        return result.value
 
 # Routes
 # TODO: Authentication
@@ -56,3 +38,6 @@ async def get_dividends(netuid: int, hotkey: str):
         "cached": False, # TODO,
         "stake_tx_triggered": False # TODO
     }
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
