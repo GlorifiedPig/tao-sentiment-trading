@@ -1,10 +1,10 @@
 
-# TODO: Caching layer.
 # TODO: Staking logic.
 
 # Imports
-from typing import Optional
-from fastapi import FastAPI
+from typing import Optional, Annotated
+from fastapi import FastAPI, Depends
+from fastapi.security import OAuth2PasswordBearer
 from bittensor.core.settings import SS58_FORMAT
 from async_substrate_interface import AsyncSubstrateInterface
 from tao_redis import TaoRedis
@@ -114,7 +114,7 @@ async def get_tao_dividends_per_subnet_all() -> float:
 
         return float(total_dividends)
 
-# Routes
+# FastAPI
 app = FastAPI(
     title="Tao Dividends API",
     description="An API to fetch Tao dividends from the blockchain.",
@@ -122,14 +122,17 @@ app = FastAPI(
         "name": "Ryan Cherry",
         "url": "https://github.com/GlorifiedPig",
         "email": "ryan@glorifiedstudios.com"
-    }
+    },
+    root_path="/api/v1"
 )
 
-@app.get("/api/v1/tao_dividends",
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+@app.get("tao_dividends",
          tags=["tao"],
          summary="Fetch Tao dividends.",
          response_description="Returns a JSON object with the dividends value.")
-async def tao_dividends(netuid: Optional[int] = None, hotkey: Optional[str] = None):
+async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: Optional[int] = None, hotkey: Optional[str] = None):
     cached: bool
     dividends: float
 
