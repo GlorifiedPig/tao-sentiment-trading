@@ -1,4 +1,6 @@
 
+# TODO: Check for async support.
+
 # Imports
 import redis
 from typing import Optional

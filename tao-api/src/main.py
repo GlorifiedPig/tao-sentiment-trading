@@ -29,15 +29,11 @@ async def exhaust(qmr):
     return r
 
 # Logic
-tao_redis_instance = TaoRedis(host=redis_host, port=redis_port, db=redis_db)
+tao_redis_instance: TaoRedis = TaoRedis(host=redis_host, port=redis_port, db=redis_db)
 
 async def get_tao_dividends_per_subnet(netuid: int, hotkey: str) -> float:
-    """Fetches TaoDividendsPerSubnet value with our specified netuid and hotkey.
-    
-    First checks if we have any cached value from Redis (which is stored by default for 2 minutes)
+    """Fetches dividends value from our specified netuid and hotkey.
 
-    If not, we query and update the Redis cache.
-    
     Args:
         netuid (int): The netuid to fetch the value for.
         hotkey (str): The hotkey to fetch the value for.
@@ -56,12 +52,8 @@ async def get_tao_dividends_per_subnet(netuid: int, hotkey: str) -> float:
         return float(result.value)
 
 async def get_tao_dividends_per_subnet_netuid(netuid: int) -> float:
-    """Fetches TaoDividendsPerSubnet value with our specified netuid.
-    
-    First checks if we have any cached value from Redis (which is stored by default for 2 minutes)
+    """Fetches total dividends from our specified netuid.
 
-    If not, we query and update the Redis cache.
-    
     Args:
         netuid (int): The netuid to fetch the value for.
 
@@ -94,11 +86,7 @@ async def get_tao_dividends_per_subnet_netuid(netuid: int) -> float:
         return float(total_dividends)
 
 async def get_tao_dividends_per_subnet_all() -> float:
-    """Fetches TaoDividendsPerSubnet value with all netuids.
-    
-    First checks if we have any cached value from Redis (which is stored by default for 2 minutes)
-
-    If not, we query and update the Redis cache.
+    """Fetches total dividends from all netuids.
     
     Args:
         None
@@ -106,11 +94,6 @@ async def get_tao_dividends_per_subnet_all() -> float:
     Returns:
         float: The total dividend value for all netuids.
     """
-    cached_dividends = tao_redis_instance.get_tao_dividends()
-
-    if cached_dividends is not None:
-        return cached_dividends
-
     async with AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443", ss58_format=SS58_FORMAT) as substrate:
         block_hash = await substrate.get_chain_head()
 
@@ -120,7 +103,7 @@ async def get_tao_dividends_per_subnet_all() -> float:
             storage_function="TaoDividendsPerSubnet",
             params=[netuid],
                 block_hash=block_hash
-            ) for netuid in range(1, 51)
+            ) for netuid in range(1, 51) # TODO: Is this the correct range for netuid?
         ]
         tasks = [exhaust(task) for task in tasks]
 
@@ -131,8 +114,6 @@ async def get_tao_dividends_per_subnet_all() -> float:
             for k, v in result:
                 total_dividends += v.value # TODO Is this the right way to be fetching the totals?
 
-        tao_redis_instance.set_tao_dividends(total_dividends)
-
         return float(total_dividends)
 
 # Routes
@@ -142,15 +123,26 @@ app = FastAPI()
 async def root():
     return {"message": "Hello World"}
 
-# TODO: Move caching logic to the routes / API section instead of the backend.
 @app.get("/api/v1/tao_dividends")
 async def tao_dividends(netuid: Optional[int] = None, hotkey: Optional[str] = None):
-    if netuid is not None and hotkey is not None:
-        dividends = await get_tao_dividends_per_subnet(netuid, hotkey)
-    elif netuid is not None:
-        dividends = await get_tao_dividends_per_subnet_netuid(netuid)
+    cached: bool
+    dividends: float
+
+    cached_dividend = tao_redis_instance.get_tao_dividends(netuid, hotkey)
+
+    if cached_dividend is not None:
+        cached = True
+        dividends = cached_dividend
     else:
-        dividends = await get_tao_dividends_per_subnet_all()
+        cached = False
+        if netuid is not None and hotkey is not None:
+            dividends = await get_tao_dividends_per_subnet(netuid, hotkey)
+        elif netuid is not None:
+            dividends = await get_tao_dividends_per_subnet_netuid(netuid)
+        else:
+            dividends = await get_tao_dividends_per_subnet_all()
+        
+        tao_redis_instance.set_tao_dividends(dividends, netuid, hotkey)
     
     # TODO: Error handling.
     # TODO: Invalid netuid / hotkey handling.
@@ -160,7 +152,7 @@ async def tao_dividends(netuid: Optional[int] = None, hotkey: Optional[str] = No
         "netuid": netuid,
         "hotkey": hotkey,
         "dividends": dividends,
-        "cached": False, # TODO,
+        "cached": cached,
         "stake_tx_triggered": False # TODO
     }
 
