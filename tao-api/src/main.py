@@ -78,35 +78,18 @@ async def root():
     return {"message": "Hello World"}
 
 @app.get("/api/v1/tao_dividends")
-async def get_all_dividends():
-    dividends = await get_tao_dividends_per_subnet_all()
-    return {
-        "dividends": dividends,
-        "cached": False, # TODO,
-        "stake_tx_triggered": False # TODO
-    }
+async def tao_dividends(netuid: int | None = None, hotkey: str | None = None):
+    if netuid is not None and hotkey is not None:
+        dividends = await get_tao_dividends_per_subnet(netuid, hotkey)
+    elif netuid is not None:
+        dividends = await get_tao_dividends_per_subnet_netuid(netuid)
+    else:
+        dividends = await get_tao_dividends_per_subnet_all()
 
-
-@app.get("/api/v1/tao_dividends/{netuid}")
-async def get_dividends(netuid: int):
-    dividends = await get_tao_dividends_per_subnet_netuid(netuid)
-    return {
-        "netuid": netuid,
-        "dividend": dividends,
-        "cached": False, # TODO,
-        "stake_tx_triggered": False # TODO
-    }
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-
-@app.get("/api/v1/tao_dividends/{netuid}/{hotkey}")
-async def get_dividends(netuid: int, hotkey: str):
-    dividends = await get_tao_dividends_per_subnet(netuid, hotkey)
     return {
         "netuid": netuid,
         "hotkey": hotkey,
-        "dividend": dividends,
+        "dividends": dividends,
         "cached": False, # TODO,
         "stake_tx_triggered": False # TODO
     }
