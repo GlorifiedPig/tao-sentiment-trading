@@ -3,3 +3,5 @@ fastapi
 bittensor
 async-substrate-interface
 uvicorn
+redis[hiredis]
+python-decouple

@@ -14,16 +14,30 @@ services:
   #     timeout: 5s
   #     retries: 5
   #     start_period: 10s
-  
+
+  redis:
+    image: redis
+    restart: on-failure:3
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
   tao-api:
     build:
       context: ./tao-api
     restart: on-failure:3
     env_file:
       - .env
-    # depends_on:
+    depends_on:
     #   mysql:
     #     condition: service_healthy
+        redis:
+          condition: service_healthy
     volumes:
       - tao-api:/app/data
     ports:
