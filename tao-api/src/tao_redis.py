@@ -7,6 +7,7 @@ from typing import Optional
 
 # Configuration
 TAO_DIVIDEND_EXPIRY_SECONDS = 120
+TOTAL_NETWORKS_EXPIRY_SECONDS = 300
 
 # Logic
 class TaoRedis:
@@ -44,3 +45,19 @@ class TaoRedis:
         key = f"tao_dividends:{netuid_part}:{hotkey_part}"
 
         self.redis.set(key, dividends, ex=TAO_DIVIDEND_EXPIRY_SECONDS) # TODO: Is this expiry time in seconds?
+
+    def get_total_networks(self) -> int:
+        """Fetches cached Total Networks value from Redis.
+        
+        Returns:
+            int: The total number of networks.
+        """
+        return self.redis.get("total_networks")
+    
+    def set_total_networks(self, total_networks: int):
+        """Updates cached Total Networks value in Redis.
+        
+        Args:
+            total_networks (int): The total number of networks to update the cache with.
+        """
+        self.redis.set("total_networks", total_networks, ex=TOTAL_NETWORKS_EXPIRY_SECONDS)

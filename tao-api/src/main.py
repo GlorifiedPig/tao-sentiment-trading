@@ -32,6 +32,10 @@ async def exhaust(qmr):
 # Logic
 tao_redis_instance: TaoRedis = TaoRedis(host=redis_host, port=redis_port, db=redis_db)
 
+async def get_total_networks() -> int:
+    async with AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443", ss58_format=SS58_FORMAT) as substrate:
+        return (await substrate.query( module="SubtensorModule", storage_function="TotalNetworks" )).value
+
 async def get_tao_dividends_per_subnet(netuid: int, hotkey: str) -> float:
     """Fetches dividends value from our specified netuid and hotkey.
 
@@ -98,13 +102,15 @@ async def get_tao_dividends_per_subnet_all() -> float:
     async with AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443", ss58_format=SS58_FORMAT) as substrate:
         block_hash = await substrate.get_chain_head()
 
+        total_networks: int = await get_total_networks()
+
         tasks = [
             substrate.query_map(
             module="SubtensorModule",
             storage_function="TaoDividendsPerSubnet",
             params=[netuid],
                 block_hash=block_hash
-            ) for netuid in range(1, 51) # TODO: Is this the correct range for netuid?
+            ) for netuid in range(1, total_networks + 1)
         ]
         tasks = [exhaust(task) for task in tasks]
 
@@ -152,6 +158,14 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
     if token != example_token:
         raise HTTPException(status_code=401, detail="Invalid token")
     
+    total_networks: int = await get_total_networks()
+
+    if type(netuid) is int and (netuid < 1 or netuid > total_networks):
+        raise HTTPException(status_code=400, detail="Invalid netuid")
+    
+    if type(hotkey) is str and len(hotkey) != 66:
+        raise HTTPException(status_code=400, detail="Invalid hotkey")
+    
     cached: bool
     dividends: float
 
@@ -172,7 +186,6 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
         tao_redis_instance.set_tao_dividends(dividends, netuid, hotkey)
     
     # TODO: Error handling.
-    # TODO: Invalid netuid / hotkey handling.
     # TODO: Authentication.
 
     return {
@@ -182,6 +195,30 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
         "cached": cached,
         "stake_tx_triggered": False # TODO
     }
+
+@app.get("/total_networks",
+         tags=["tao"],
+         summary="Fetch the total number of networks.",
+         response_description="Returns a JSON object with the total number of networks.")
+async def total_networks(token: Annotated[str, Depends(oauth2_scheme)]):
+    if token != example_token:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    cached_total_networks = tao_redis_instance.get_total_networks()
+
+    if cached_total_networks is not None:
+        return {
+            "total_networks": cached_total_networks,
+            "cached": True
+        }
+    else:
+        total_networks = await get_total_networks()
+        tao_redis_instance.set_total_networks(total_networks)
+
+        return {
+            "total_networks": total_networks,
+            "cached": False
+        }
 
 @app.get("/health",
          tags=["health"],
