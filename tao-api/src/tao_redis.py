@@ -46,13 +46,14 @@ class TaoRedis:
 
         self.redis.set(key, dividends, ex=TAO_DIVIDEND_EXPIRY_SECONDS) # TODO: Is this expiry time in seconds?
 
-    def get_total_networks(self) -> int:
+    def get_total_networks(self) -> int | None:
         """Fetches cached Total Networks value from Redis.
         
         Returns:
-            int: The total number of networks.
+            int | None: The total number of networks, or None if no cached value.
         """
-        return self.redis.get("total_networks")
+        total_networks = self.redis.get("total_networks")
+        return int(total_networks) if total_networks is not None else None
     
     def set_total_networks(self, total_networks: int):
         """Updates cached Total Networks value in Redis.

@@ -1,4 +1,3 @@
-
 # TODO: Staking logic.
 
 # Imports
@@ -31,9 +30,10 @@ async def exhaust(qmr):
 
 # Logic
 tao_redis_instance: TaoRedis = TaoRedis(host=redis_host, port=redis_port, db=redis_db)
+substrate: AsyncSubstrateInterface = AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443", ss58_format=SS58_FORMAT)
 
 async def get_total_networks() -> int:
-    async with AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443", ss58_format=SS58_FORMAT) as substrate:
+    async with substrate:
         return (await substrate.query( module="SubtensorModule", storage_function="TotalNetworks" )).value
 
 async def get_tao_dividends_per_subnet(netuid: int, hotkey: str) -> float:
@@ -51,7 +51,7 @@ async def get_tao_dividends_per_subnet(netuid: int, hotkey: str) -> float:
     if cached_dividends is not None:
         return cached_dividends
 
-    async with AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443", ss58_format=SS58_FORMAT) as substrate:
+    async with substrate:
         result = await substrate.query("SubtensorModule", "TaoDividendsPerSubnet", [netuid, hotkey])
         tao_redis_instance.set_tao_dividends(result.value, netuid, hotkey)
         return float(result.value)
@@ -70,8 +70,7 @@ async def get_tao_dividends_per_subnet_netuid(netuid: int) -> float:
     if cached_dividends is not None:
         return cached_dividends
 
-    async with AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443",
-                                       ss58_format=SS58_FORMAT) as substrate:
+    async with substrate:
         block_hash = await substrate.get_chain_head()
 
         result = await substrate.query_map(
@@ -80,11 +79,10 @@ async def get_tao_dividends_per_subnet_netuid(netuid: int) -> float:
             params=[netuid],
             block_hash=block_hash
         )
-        
-        total_dividends: float = 0
 
-        async for k, v in result:
-            total_dividends += v.value # TODO Is this the right way to be fetching the totals?
+        total_dividends: float = 0
+        async for _, v in result:
+            total_dividends += v.value
 
         tao_redis_instance.set_tao_dividends(total_dividends, netuid)
 
@@ -99,7 +97,7 @@ async def get_tao_dividends_per_subnet_all() -> float:
     Returns:
         float: The total dividend value for all netuids.
     """
-    async with AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443", ss58_format=SS58_FORMAT) as substrate:
+    async with substrate:
         block_hash = await substrate.get_chain_head()
 
         total_networks: int = await get_total_networks()
@@ -118,8 +116,7 @@ async def get_tao_dividends_per_subnet_all() -> float:
 
         for future in asyncio.as_completed(tasks):
             result = await future
-            for k, v in result:
-                total_dividends += v.value # TODO Is this the right way to be fetching the totals?
+            total_dividends += sum(v.value for _, v in result)
 
         return float(total_dividends)
 
@@ -166,6 +163,9 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
     if type(hotkey) is str and len(hotkey) != 66:
         raise HTTPException(status_code=400, detail="Invalid hotkey")
     
+    if type(hotkey) is str and netuid is None:
+        raise HTTPException(status_code=400, detail="Hotkey provided but no netuid")
+    
     cached: bool
     dividends: float
 
@@ -184,9 +184,6 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
             dividends = await get_tao_dividends_per_subnet_all()
         
         tao_redis_instance.set_tao_dividends(dividends, netuid, hotkey)
-    
-    # TODO: Error handling.
-    # TODO: Authentication.
 
     return {
         "netuid": netuid,
