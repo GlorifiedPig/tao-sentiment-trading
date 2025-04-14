@@ -34,8 +34,22 @@ tao_redis_instance: TaoRedis = TaoRedis(host=redis_host, port=redis_port, db=red
 substrate: AsyncSubstrateInterface = AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443", ss58_format=SS58_FORMAT)
 
 async def get_total_networks() -> int:
+    """Fetches the total number of networks from the blockchain.
+
+    This also caches the value in Redis for 5 minutes, as this function is used a lot and querying it so often is not necessary.
+    
+    Returns:
+        int: The total number of networks.
+    """
+    cached_total_networks = tao_redis_instance.get_total_networks()
+
+    if cached_total_networks is not None:
+        return cached_total_networks
+
     async with substrate:
-        return (await substrate.query( module="SubtensorModule", storage_function="TotalNetworks" )).value
+        total_networks = (await substrate.query( module="SubtensorModule", storage_function="TotalNetworks" )).value
+        tao_redis_instance.set_total_networks(total_networks)
+        return total_networks
 
 async def get_tao_dividends_per_subnet(netuid: int, hotkey: str) -> float:
     """Fetches dividends value from our specified netuid and hotkey.
@@ -198,22 +212,10 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
 async def total_networks(token: Annotated[str, Depends(oauth2_scheme)]):
     if token != example_token:
         raise HTTPException(status_code=401, detail="Invalid token")
-    
-    cached_total_networks = tao_redis_instance.get_total_networks()
 
-    if cached_total_networks is not None:
-        return {
-            "total_networks": cached_total_networks,
-            "cached": True
-        }
-    else:
-        total_networks = await get_total_networks()
-        tao_redis_instance.set_total_networks(total_networks)
-
-        return {
-            "total_networks": total_networks,
-            "cached": False
-        }
+    return {
+        "total_networks": await get_total_networks()
+    }
 
 @app.get("/health",
          tags=["health"],
