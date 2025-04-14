@@ -1,3 +1,4 @@
+
 # TODO: Staking logic.
 
 # Imports
@@ -159,9 +160,6 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
 
     if type(netuid) is int and (netuid < 1 or netuid > total_networks):
         raise HTTPException(status_code=400, detail="Invalid netuid")
-    
-    if type(hotkey) is str and len(hotkey) != 66:
-        raise HTTPException(status_code=400, detail="Invalid hotkey")
     
     if type(hotkey) is str and netuid is None:
         raise HTTPException(status_code=400, detail="Hotkey provided but no netuid")
