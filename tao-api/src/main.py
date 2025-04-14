@@ -4,7 +4,7 @@
 # Imports
 from typing import Optional, Annotated
 from fastapi import FastAPI, Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from bittensor.core.settings import SS58_FORMAT
 from async_substrate_interface import AsyncSubstrateInterface
 from tao_redis import TaoRedis
@@ -17,6 +17,7 @@ example_hotkey: str = "5FFApaS75bv5pJHfAp2FVLBj9ZaXuFDjEypsaBNc1wCfe52v"
 example_netuid: int = 18
 default_username: str = "admin"
 default_password: str = "admin"
+example_token: str = "fake-token"
 redis_host: str = config("REDIS_HOST", default="localhost")
 redis_port: int = config("REDIS_PORT", default=6379)
 redis_db: int = config("REDIS_DB", default=0)
@@ -134,14 +135,23 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
          tags=["auth"],
          summary="Login to the API.",
          response_description="Returns a JSON object with the login token.")
-async def login(username: str, password: str):
-    pass
+async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    if form_data.username != default_username or form_data.password != default_password:
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+    
+    return {
+        "access_token": example_token,
+        "token_type": "Bearer"
+    }
 
 @app.get("/tao_dividends",
          tags=["tao"],
          summary="Fetch Tao dividends.",
          response_description="Returns a JSON object with the dividends value.")
 async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: Optional[int] = None, hotkey: Optional[str] = None):
+    if token != example_token:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
     cached: bool
     dividends: float
 
