@@ -53,7 +53,6 @@ class TaoSentiments:
                 # Try to convert the content to an integer
                 score = int(''.join(c for c in content if c.isdigit() or c == '-'))
 
-                print(score)
                 # Validate the score is within range
                 if -100 <= score <= 100:
                     return score
