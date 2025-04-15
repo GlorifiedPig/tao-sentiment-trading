@@ -22,6 +22,10 @@ def perform_sentiment_analysis(text: str) -> int:
     return tao_sentiments.perform_sentiment_analysis(text)
 
 @celery.task
+def sentiment_analysis_on_recent_tweets(netuid: int) -> int:
+    return tao_sentiments.sentiment_analysis_on_recent_tweets(netuid)
+
+@celery.task
 def sentiment_analysis_and_staking(netuid: int, hotkey: str) -> int:
     pass
 

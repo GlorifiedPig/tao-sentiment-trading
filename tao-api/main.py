@@ -39,8 +39,7 @@ tao_tests_instance: TaoTests = TaoTests()
 
 tao_tests_instance.run_all_tests()
 
-test_task = celery.send_task("tao_celery.test_task")
-test_search_recent_tweets = celery.send_task("tao_celery.search_recent_tweets", args=[EXAMPLE_NETUID])
+celery.send_task("tao_celery.sentiment_analysis_on_recent_tweets", args=[10])
 
 substrate: AsyncSubstrateInterface = AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443", ss58_format=SS58_FORMAT)
 
