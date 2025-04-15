@@ -8,19 +8,23 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from bittensor.core.settings import SS58_FORMAT
 from async_substrate_interface import AsyncSubstrateInterface
 from tao_redis import TaoRedis
+from tao_sentiments import TaoSentiments
+from tao_tests import TaoTests
 from decouple import config
 import asyncio
 import uvicorn
 
 # Configuration
-example_hotkey: str = "5FFApaS75bv5pJHfAp2FVLBj9ZaXuFDjEypsaBNc1wCfe52v"
-example_netuid: int = 18
-default_username: str = "admin"
-default_password: str = "admin"
-example_token: str = "fake-token"
-redis_host: str = config("REDIS_HOST", default="localhost")
-redis_port: int = config("REDIS_PORT", default=6379)
-redis_db: int = config("REDIS_DB", default=0)
+EXAMPLE_HOTKEY: str = "5FFApaS75bv5pJHfAp2FVLBj9ZaXuFDjEypsaBNc1wCfe52v"
+EXAMPLE_NETUID: int = 18
+DEFAULT_USERNAME: str = "admin"
+DEFAULT_PASSWORD: str = "admin"
+EXAMPLE_TOKEN: str = "fake-token"
+REDIS_HOST: str = config("REDIS_HOST", default="localhost")
+REDIS_PORT: int = config("REDIS_PORT", default=6379)
+REDIS_DB: int = config("REDIS_DB", default=0)
+DATURA_API_KEY: str = config("DATURA_API_KEY")
+CHUTES_API_KEY: str = config("CHUTES_API_KEY")
 
 # Utils
 async def exhaust(qmr):
@@ -30,7 +34,12 @@ async def exhaust(qmr):
     return r
 
 # Logic
-tao_redis_instance: TaoRedis = TaoRedis(host=redis_host, port=redis_port, db=redis_db)
+tao_redis_instance: TaoRedis = TaoRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
+tao_sentiments_instance: TaoSentiments = TaoSentiments(datura_api_key=DATURA_API_KEY, chutes_api_key=CHUTES_API_KEY)
+tao_tests_instance: TaoTests = TaoTests(tao_sentiments_instance)
+
+tao_tests_instance.run_all_tests()
+
 substrate: AsyncSubstrateInterface = AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443", ss58_format=SS58_FORMAT)
 
 async def get_total_networks() -> int:
@@ -154,11 +163,11 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
          summary="Login to the API.",
          response_description="Returns a JSON object with the login token.")
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    if form_data.username != default_username or form_data.password != default_password:
+    if form_data.username != DEFAULT_USERNAME or form_data.password != DEFAULT_PASSWORD:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
     
     return {
-        "access_token": example_token,
+        "access_token": EXAMPLE_TOKEN,
         "token_type": "Bearer"
     }
 
@@ -166,8 +175,8 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
          tags=["tao"],
          summary="Fetch Tao dividends.",
          response_description="Returns a JSON object with the dividends value.")
-async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: Optional[int] = None, hotkey: Optional[str] = None):
-    if token != example_token:
+async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: Optional[int] = None, hotkey: Optional[str] = None, trade: Optional[bool] = False):
+    if token != EXAMPLE_TOKEN:
         raise HTTPException(status_code=401, detail="Invalid token")
     
     total_networks: int = await get_total_networks()
@@ -210,7 +219,7 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
          summary="Fetch the total number of networks.",
          response_description="Returns a JSON object with the total number of networks.")
 async def total_networks(token: Annotated[str, Depends(oauth2_scheme)]):
-    if token != example_token:
+    if token != EXAMPLE_TOKEN:
         raise HTTPException(status_code=401, detail="Invalid token")
 
     return {
