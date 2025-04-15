@@ -26,7 +26,18 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
-
+  
+  worker:
+    build:
+      context: ./tao-api
+    command: celery -A tao_celery worker --loglevel=info --uid=taoapi
+    restart: on-failure:3
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+        
   tao-api:
     build:
       context: ./tao-api

@@ -9,6 +9,7 @@ from bittensor.core.settings import SS58_FORMAT
 from async_substrate_interface import AsyncSubstrateInterface
 from tao_redis import TaoRedis
 from tao_sentiments import TaoSentiments
+from tao_celery import celery
 from tao_tests import TaoTests
 from decouple import config
 import asyncio
@@ -39,6 +40,8 @@ tao_sentiments_instance: TaoSentiments = TaoSentiments(datura_api_key=DATURA_API
 tao_tests_instance: TaoTests = TaoTests(tao_sentiments_instance)
 
 tao_tests_instance.run_all_tests()
+
+test_task = celery.send_task("tao_celery.test_task")
 
 substrate: AsyncSubstrateInterface = AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443", ss58_format=SS58_FORMAT)
 

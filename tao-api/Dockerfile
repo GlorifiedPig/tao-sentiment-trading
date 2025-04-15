@@ -6,6 +6,7 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
+
 RUN mkdir data
 RUN mkdir data/logs
 
@@ -18,6 +19,10 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 COPY . .
 
+RUN useradd -m taoapi
+
+RUN chown -R taoapi:taoapi /app
+
 EXPOSE 8000
 
-CMD ["python", "src/main.py"]
+CMD ["su", "-c", "python main.py", "taoapi"]
