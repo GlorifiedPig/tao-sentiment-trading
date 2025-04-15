@@ -2,7 +2,7 @@
 # Imports
 from celery import Celery
 from decouple import config
-from tao_sentiments import TaoSentiments
+import tao_sentiments
 
 # Configuration
 CELERY_BROKER_URL: str = config("CELERY_BROKER_URL")
@@ -14,15 +14,15 @@ celery = Celery(
 )
 
 @celery.task
-def fetch_recent_tweets(tao_sentiments_instance: TaoSentiments, netuid: int) -> dict | None:
-    return tao_sentiments_instance.fetch_recent_tweets(netuid)
+def search_recent_tweets(netuid: int) -> dict | None:
+    return tao_sentiments.search_recent_tweets(netuid)
 
 @celery.task
-def perform_sentiment_analysis(tao_sentiments_instance: TaoSentiments, text: str) -> int:
-    return tao_sentiments_instance.perform_sentiment_analysis(text)
+def perform_sentiment_analysis(text: str) -> int:
+    return tao_sentiments.perform_sentiment_analysis(text)
 
 @celery.task
-def sentiment_analysis_and_staking(tao_sentiments_instance: TaoSentiments, netuid: int, hotkey: str) -> int:
+def sentiment_analysis_and_staking(netuid: int, hotkey: str) -> int:
     pass
 
 @celery.task

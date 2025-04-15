@@ -49,6 +49,8 @@ services:
     #     condition: service_healthy
         redis:
           condition: service_healthy
+        worker:
+          condition: service_started
     volumes:
       - tao-api:/app/data
     ports:

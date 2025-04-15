@@ -8,7 +8,6 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from bittensor.core.settings import SS58_FORMAT
 from async_substrate_interface import AsyncSubstrateInterface
 from tao_redis import TaoRedis
-from tao_sentiments import TaoSentiments
 from tao_celery import celery
 from tao_tests import TaoTests
 from decouple import config
@@ -36,12 +35,12 @@ async def exhaust(qmr):
 
 # Logic
 tao_redis_instance: TaoRedis = TaoRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
-tao_sentiments_instance: TaoSentiments = TaoSentiments(datura_api_key=DATURA_API_KEY, chutes_api_key=CHUTES_API_KEY)
-tao_tests_instance: TaoTests = TaoTests(tao_sentiments_instance)
+tao_tests_instance: TaoTests = TaoTests()
 
 tao_tests_instance.run_all_tests()
 
 test_task = celery.send_task("tao_celery.test_task")
+test_search_recent_tweets = celery.send_task("tao_celery.search_recent_tweets", args=[EXAMPLE_NETUID])
 
 substrate: AsyncSubstrateInterface = AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443", ss58_format=SS58_FORMAT)
 
