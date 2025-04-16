@@ -107,7 +107,7 @@ async def get_tao_dividends_per_subnet_netuid(netuid: int) -> float:
 
         total_dividends: float = 0
         async for _, v in result:
-            total_dividends += v.value
+            total_dividends += v.value # TODO: This should not return the total, it should return the amount of dividends associated with each hotkey.
 
         tao_redis_instance.set_tao_dividends(total_dividends, netuid)
 
@@ -141,7 +141,7 @@ async def get_tao_dividends_per_subnet_all() -> float:
 
         for future in asyncio.as_completed(tasks):
             result = await future
-            total_dividends += sum(v.value for _, v in result)
+            total_dividends += sum(v.value for _, v in result) # TODO: This should not return the total, it should return the amount of dividends associated with each netuid and hotkey.
 
         return float(total_dividends)
 
