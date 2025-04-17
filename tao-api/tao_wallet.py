@@ -4,6 +4,7 @@ from decouple import config
 from bittensor import Wallet, Balance
 from bittensor.core import async_subtensor
 from bittensor.utils.balance import tao
+import traceback
 
 # Configuration
 TESTNET_URL: str = "wss://test.finney.opentensor.ai:443"
@@ -39,6 +40,7 @@ class TaoWallet:
             return success
         except Exception as e:
             print(f"Error adding stake: {e}")
+            print(traceback.format_exc())
             return False
     
     async def unstake(self, netiud: int, amount: float) -> bool:
