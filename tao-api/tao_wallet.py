@@ -3,7 +3,7 @@
 from decouple import config
 from bittensor import Wallet, Balance
 from bittensor.core import async_subtensor
-from bittensor.utils.balance import check_and_convert_to_balance
+from bittensor.utils.balance import tao
 
 # Configuration
 TESTNET_URL: str = "wss://test.finney.opentensor.ai:443"
@@ -21,7 +21,7 @@ class TaoWallet:
 
     async def add_stake(self, netiud: int, amount: float) -> bool:
         try:
-            balance: Balance = check_and_convert_to_balance(amount)
+            balance: Balance = tao(amount)
             success: bool = await self.async_subtensor.add_stake(
                 wallet=self.wallet,
                 netuid=netiud,
@@ -43,7 +43,7 @@ class TaoWallet:
     
     async def unstake(self, netiud: int, amount: float) -> bool:
         try:
-            balance: Balance = check_and_convert_to_balance(amount)
+            balance: Balance = tao(amount)
             success: bool = await self.async_subtensor.unstake(
                 wallet=self.wallet,
                 netuid=netiud,
@@ -64,5 +64,5 @@ class TaoWallet:
             return False
     
     async def test_stakes(self):
-        await self.add_stake(netiud=0, amount=0.02)
-        await self.unstake(netiud=0, amount=0.01)
+        await self.add_stake(netiud=0, amount=0.1)
+        await self.unstake(netiud=0, amount=0.02)

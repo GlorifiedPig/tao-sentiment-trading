@@ -93,6 +93,7 @@ def sentiment_analysis_on_recent_tweets(netuid: int) -> int | None:
     """
     recent_tweets = search_recent_tweets(netuid)
 
+    # FIXME This returns None too often, get the prompt better so it returns -100 to 100.
     if recent_tweets is None:
         return None
 
