@@ -53,6 +53,7 @@ services:
           condition: service_started
     volumes:
       - tao-api:/app/data
+      - ./wallets:/app/wallets
     ports:
       - "8000:8000"
 volumes:

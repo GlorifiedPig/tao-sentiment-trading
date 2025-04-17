@@ -10,6 +10,7 @@ from async_substrate_interface import AsyncSubstrateInterface
 from tao_redis import TaoRedis
 from tao_celery import celery
 from tao_tests import TaoTests
+from tao_wallet import TaoWallet
 from decouple import config
 import asyncio
 import uvicorn
@@ -42,6 +43,12 @@ tao_tests_instance.run_all_tests()
 celery.send_task("tao_celery.sentiment_analysis_on_recent_tweets", args=[10])
 
 substrate: AsyncSubstrateInterface = AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443", ss58_format=SS58_FORMAT)
+
+# Test staking
+# NOTE: REMOVE THIS!
+tao_wallet_instance: TaoWallet = TaoWallet()
+
+asyncio.run(tao_wallet_instance.test_stakes())
 
 async def get_total_networks() -> int:
     """Fetches the total number of networks from the blockchain.
