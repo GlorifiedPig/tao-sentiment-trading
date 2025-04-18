@@ -6,6 +6,7 @@ from typing import Optional, Annotated
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from bittensor.core.settings import SS58_FORMAT
+from bittensor.utils import is_valid_bittensor_address_or_public_key
 from async_substrate_interface import AsyncSubstrateInterface
 from tao_redis import TaoRedis
 from tao_celery import celery
@@ -39,7 +40,7 @@ tao_redis_instance: TaoRedis = TaoRedis(host=REDIS_HOST, port=REDIS_PORT, db=RED
 tao_tests_instance: TaoTests = TaoTests()
 
 # TODO: Re-add tests
-#tao_tests_instance.run_all_tests()
+tao_tests_instance.run_all_tests()
 
 celery.send_task("tao_celery.sentiment_analysis_on_recent_tweets", args=[10])
 
@@ -206,6 +207,9 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
     else:
         cached = False
         if netuid is not None and hotkey is not None:
+            if not is_valid_bittensor_address_or_public_key(hotkey):
+                raise HTTPException(status_code=400, detail="Invalid hotkey")
+
             dividends = await get_tao_dividends_per_subnet(netuid, hotkey)
         elif netuid is not None:
             dividends = await get_tao_dividends_per_subnet_netuid(netuid)
