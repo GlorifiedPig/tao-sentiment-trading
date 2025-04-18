@@ -20,12 +20,12 @@ class TaoWallet:
         self.wallet.create_new_coldkey(overwrite=True, use_password=False)
         self.async_subtensor = async_subtensor.AsyncSubtensor(network=TESTNET_URL)
 
-    async def add_stake(self, netiud: int, amount: float) -> bool:
+    async def add_stake(self, netuid: int, amount: float) -> bool:
         try:
             balance: Balance = tao(amount)
             success: bool = await self.async_subtensor.add_stake(
                 wallet=self.wallet,
-                netuid=netiud,
+                netuid=netuid,
                 amount=balance,
                 hotkey_ss58=self.wallet.hotkey_str,
                 wait_for_inclusion=True,
@@ -34,21 +34,21 @@ class TaoWallet:
                 allow_partial_stake=False
             )
             if success:
-                print(f"Successfully staked {amount} on netuid {netiud}")
+                print(f"Successfully staked {amount} on netuid {netuid}")
             else:
-                print(f"Failed to stake {amount} on netuid {netiud}")
+                print(f"Failed to stake {amount} on netuid {netuid}")
             return success
         except Exception as e:
             print(f"Error adding stake: {e}")
             print(traceback.format_exc())
             return False
     
-    async def unstake(self, netiud: int, amount: float) -> bool:
+    async def unstake(self, netuid: int, amount: float) -> bool:
         try:
             balance: Balance = tao(amount)
             success: bool = await self.async_subtensor.unstake(
                 wallet=self.wallet,
-                netuid=netiud,
+                netuid=netuid,
                 amount=balance,
                 hotkey_ss58=self.wallet.hotkey_str,
                 wait_for_inclusion=True,
@@ -57,14 +57,14 @@ class TaoWallet:
                 allow_partial_stake=False
             )
             if success:
-                print(f"Successfully unstaked {amount} on netuid {netiud}")
+                print(f"Successfully unstaked {amount} on netuid {netuid}")
             else:
-                print(f"Failed to unstake {amount} on netuid {netiud}")
+                print(f"Failed to unstake {amount} on netuid {netuid}")
             return success
         except Exception as e:
             print(f"Error unstaking: {e}")
             return False
     
     async def test_stakes(self):
-        await self.add_stake(netiud=0, amount=0.1)
-        await self.unstake(netiud=0, amount=0.02)
+        await self.add_stake(netuid=0, amount=0.1)
+        await self.unstake(netuid=0, amount=0.02)
