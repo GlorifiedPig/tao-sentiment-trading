@@ -27,7 +27,7 @@ chutes_api_headers: dict = {
     "Content-Type": "application/json"
 }
 
-def search_recent_tweets(netuid: int, tweet_count: int = 15) -> dict | None:
+def search_recent_tweets(netuid: int) -> dict | None:
     """Fetches recent tweets about the given netuid.
     
     Args:
@@ -37,8 +37,7 @@ def search_recent_tweets(netuid: int, tweet_count: int = 15) -> dict | None:
         dict | None: The recent tweets, or None if the request fails.
     """
     params = {
-        "query": f"Bittensor netuid {netuid}",
-        "tweet_count": tweet_count
+        "query": f"Bittensor netuid {netuid}"
     }
 
     try:
