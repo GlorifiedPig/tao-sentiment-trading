@@ -2,6 +2,12 @@
 
 This is a demonstration project that analyzes Twitter sentiment regarding Bittensor networks and automatically trades Tao coins based on the sentiment analysis. The project uses datura.ai and chutes.ai to analyze tweets and make trading decisions.
 
+It exposes an API endpoint, which connects to datura.ai to fetch the latest tweets regarding a chosen netuid, and then connects to chutes.ai to analyze sentiment.
+
+Based off this score (ranging from -100 to 100), we multiply that by * 0.01, and use the Bittensor libraries to stake or unstake that amount of Tao on that netuid depending on if we have a positive or negative sentiment.
+
+This is all done on the test network.
+
 ## Prerequisites
 
 - Docker
