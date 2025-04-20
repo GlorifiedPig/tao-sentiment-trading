@@ -12,8 +12,8 @@ MYSQL_PASSWORD: str = config("MYSQL_PASSWORD")
 MYSQL_DATABASE: str = config("MYSQL_DATABASE")
 
 # Configure Logger
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 # Logic
 Base = declarative_base()

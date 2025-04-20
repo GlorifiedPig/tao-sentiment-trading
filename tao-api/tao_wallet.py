@@ -14,8 +14,8 @@ WALLET_HOTKEY: str = config("WALLET_HOTKEY")
 WALLET_PATH: str = "/app/wallets/"
 
 # Configure Logger
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 # Logic
 class TaoWallet:

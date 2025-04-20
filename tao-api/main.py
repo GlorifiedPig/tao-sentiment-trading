@@ -29,8 +29,8 @@ DATURA_API_KEY: str = config("DATURA_API_KEY")
 CHUTES_API_KEY: str = config("CHUTES_API_KEY")
 
 # Configure Logger
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 # Lower level on loggers from external libraries
 logging.getLogger("websockets.client").setLevel(logging.WARNING)

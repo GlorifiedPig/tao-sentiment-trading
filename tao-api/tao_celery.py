@@ -13,8 +13,8 @@ import asyncio
 CELERY_BROKER_URL: str = config("CELERY_BROKER_URL")
 
 # Configure Logger
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 # Logic
 tao_wallet_instance: TaoWallet = TaoWallet()

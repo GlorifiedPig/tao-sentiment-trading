@@ -6,8 +6,8 @@ import time
 import logging
 
 # Configure Logger
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 # Logic
 class TaoTests:

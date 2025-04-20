@@ -10,8 +10,8 @@ DATURA_API_KEY: str = config("DATURA_API_KEY")
 CHUTES_API_KEY: str = config("CHUTES_API_KEY")
 
 # Configure Logger
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 # Logic
 datura_api_url: str = "https://apis.datura.ai/twitter"
