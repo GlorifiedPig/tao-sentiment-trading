@@ -85,3 +85,6 @@ Once the services are running, you can access:
 The API uses basic authentication. Default credentials:
 - Username: `admin`
 - Password: `admin`
+
+## Demonstration Video
+Work in Progress
