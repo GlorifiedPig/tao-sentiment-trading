@@ -1,11 +1,10 @@
 ARG PYTHON_VERSION=3.11.8
-FROM python:${PYTHON_VERSION}-bookworm as base
+FROM python:${PYTHON_VERSION}-bookworm AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
-
 
 RUN mkdir data
 RUN mkdir data/logs
