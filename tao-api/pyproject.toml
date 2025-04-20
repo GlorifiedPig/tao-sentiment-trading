@@ -1,0 +1,7 @@
+[project]
+name = "tao-api"
+version = "0.1.0"
+description = "A RESTful API for the Tao Sentiment-Based Trading project"
+authors = [
+    { name="GlorifiedPig", email="glorifiedpig@gmail.com" }
+]

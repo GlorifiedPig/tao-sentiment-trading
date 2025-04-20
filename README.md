@@ -13,8 +13,8 @@ This is a demonstration project that analyzes Twitter sentiment regarding Bitten
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/GlorifiedPig/tao-dividends-api.git
-cd tao-dividends-api
+git clone https://github.com/GlorifiedPig/tao-sentiment-trading.git
+cd tao-sentiment-trading
 ```
 
 ### 2. Environment Configuration
