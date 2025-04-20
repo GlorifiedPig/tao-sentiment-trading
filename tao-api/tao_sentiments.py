@@ -54,14 +54,14 @@ def search_recent_tweets(netuid: int, tweet_count: int = 15) -> dict | None:
         logger.error(f"Search recent tweets failed: {str(e)}")
         return None
     
-def perform_sentiment_analysis(text: str) -> int | None:
+def perform_sentiment_analysis(text: str) -> float | None:
     """Performs sentiment analysis on the given text.
 
     Args:
         text (str): The text to analyze.
 
     Returns:
-        int | None: The sentiment score, or None if the score is out of range or the request fails.
+        float | None: The sentiment score, or None if the score is out of range or the request fails.
     """
     prompt = f"Return ONLY a sentiment score of -100 to 100 for the following text: {text}\nPlease make sure you ONLY return the sentiment score number (-100 to 100) and nothing else."
 
@@ -79,7 +79,7 @@ def perform_sentiment_analysis(text: str) -> int | None:
         if response.status_code == 200:
             response_data = response.json()
             content: str = response_data.get("choices", [{}])[0].get("message", {}).get("content", "")
-            score: int = int(content.strip())
+            score: float = float(content.strip())
 
             if -100 <= score <= 100:
                 logger.info(f"Sentiment analysis score: {score}")
@@ -94,14 +94,14 @@ def perform_sentiment_analysis(text: str) -> int | None:
         logger.error(f"Sentiment analysis failed: {str(e)}")
         return None
 
-def sentiment_analysis_on_recent_tweets(netuid: int) -> int | None:
+def sentiment_analysis_on_recent_tweets(netuid: int) -> float | None:
     """Performs sentiment analysis on the recent tweets about the given netuid.
     
     Args:
         netuid (int): The netuid to search for.
 
     Returns:
-        int | None: The sentiment score, or None if the score is out of range or the request fails.
+        float | None: The sentiment score, or None if the score is out of range or the request fails.
     """
     recent_tweets = search_recent_tweets(netuid)
 
@@ -112,6 +112,6 @@ def sentiment_analysis_on_recent_tweets(netuid: int) -> int | None:
     for tweet in recent_tweets:
         recent_tweets_string += f"{tweet}\n"
 
-    sentiment_score: int = perform_sentiment_analysis(recent_tweets_string)
+    sentiment_score: float = perform_sentiment_analysis(recent_tweets_string)
 
     return sentiment_score

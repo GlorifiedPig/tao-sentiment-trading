@@ -43,7 +43,7 @@ def sentiment_analysis_on_recent_tweets(netuid: int) -> int | None:
 def sentiment_analysis_and_staking(netuid: int = 18, hotkey: str = "5FFApaS75bv5pJHfAp2FVLBj9ZaXuFDjEypsaBNc1wCfe52v") -> bool:
     logger.info("Starting sentiment analysis and staking...")
 
-    sentiment_score: int | None = tao_sentiments.sentiment_analysis_on_recent_tweets(netuid)
+    sentiment_score: float | None = tao_sentiments.sentiment_analysis_on_recent_tweets(netuid)
 
     logger.info(f"Sentiment score: {sentiment_score}")
 
