@@ -32,10 +32,6 @@ CHUTES_API_KEY: str = config("CHUTES_API_KEY")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-# Lower level on loggers from external libraries
-logging.getLogger("websockets.client").setLevel(logging.WARNING)
-logging.getLogger("python_multipart.multipart").setLevel(logging.WARNING)
-
 # Utils
 async def exhaust(qmr):
     r = []
