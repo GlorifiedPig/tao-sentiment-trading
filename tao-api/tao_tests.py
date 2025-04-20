@@ -27,10 +27,19 @@ class TaoTests:
 
         logger.info("Sentiment analysis tests passed!")
     
+    def fetch_recent_tweets_tests(self):
+        recent_tweets: dict | None = tao_sentiments.search_recent_tweets(netuid=0)
+
+        assert recent_tweets is not None
+        assert len(recent_tweets) > 0
+
+        logger.info("Fetch recent tweets tests passed!")
+    
     def can_send_task_to_celery(self):
         logger.info("Sending task to celery...")
         result = test_task.delay()
     
     def run_all_tests(self):
         self.sentiment_analysis_tests()
+        self.fetch_recent_tweets_tests()
         self.can_send_task_to_celery()

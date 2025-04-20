@@ -7,6 +7,7 @@ from tao_db import TaoDB, TaoDB_Sentiment
 import datetime
 import tao_sentiments
 import logging
+import asyncio
 
 # Configuration
 CELERY_BROKER_URL: str = config("CELERY_BROKER_URL")
@@ -39,7 +40,7 @@ def sentiment_analysis_on_recent_tweets(netuid: int) -> int | None:
 
 # TODO: Does hotkey need to be passed?
 @celery_instance.task
-async def sentiment_analysis_and_staking(netuid: int = 18, hotkey: str = "5FFApaS75bv5pJHfAp2FVLBj9ZaXuFDjEypsaBNc1wCfe52v") -> bool:
+def sentiment_analysis_and_staking(netuid: int = 18, hotkey: str = "5FFApaS75bv5pJHfAp2FVLBj9ZaXuFDjEypsaBNc1wCfe52v") -> bool:
     logger.info("Starting sentiment analysis and staking...")
 
     sentiment_score: int | None = tao_sentiments.sentiment_analysis_on_recent_tweets(netuid)
@@ -60,14 +61,14 @@ async def sentiment_analysis_and_staking(netuid: int = 18, hotkey: str = "5FFApa
     
     success: bool = False
     if stake_amount > 0:
-        success: bool = await tao_wallet_instance.add_stake(netuid, stake_amount)
+        success: bool = asyncio.run(tao_wallet_instance.add_stake(netuid, stake_amount))
 
         if success:
             logger.info(f"Successfully staked {stake_amount} on netuid {netuid}.")
         else:
             logger.info(f"Failed to stake {stake_amount} on netuid {netuid}.")
     elif stake_amount < 0:
-        success: bool = await tao_wallet_instance.unstake(netuid, stake_amount)
+        success: bool = asyncio.run(tao_wallet_instance.unstake(netuid, stake_amount))
 
         if success:
             logger.info(f"Successfully unstaked {stake_amount} on netuid {netuid}.")
@@ -75,15 +76,7 @@ async def sentiment_analysis_and_staking(netuid: int = 18, hotkey: str = "5FFApa
             logger.info(f"Failed to unstake {stake_amount} on netuid {netuid}.")
 
     # Insert sentiment into DB
-    async with tao_db_instance.session_handler() as session:
-        session.add(TaoDB_Sentiment(
-            timestamp=datetime.now(),
-            netuid=netuid,
-            hotkey=hotkey,
-            sentiment=sentiment_score,
-            stake_amount=stake_amount
-        ))
-        await session.commit()
+    asyncio.run(tao_db_instance.persist_sentiment(netuid, hotkey, sentiment_score, stake_amount))
 
     return success
 

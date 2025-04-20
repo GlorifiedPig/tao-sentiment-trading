@@ -40,3 +40,14 @@ class TaoDB():
     def __init__(self):
         self.engine: AsyncEngine = create_async_engine(f"mysql+asyncmy://{MYSQL_USERNAME}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DB}")
         self.session_handler: async_scoped_session = async_scoped_session(async_sessionmaker(bind=self.engine), scopefunc=lambda: asyncio.current_task())
+
+    async def persist_sentiment(self, netuid: int, hotkey: str, sentiment: float, stake_amount: float):
+        async with self.session_handler() as session:
+            session.add(TaoDB_Sentiment(
+                timestamp=datetime.now(),
+                netuid=netuid,
+                hotkey=hotkey,
+                sentiment=sentiment,
+                stake_amount=stake_amount
+            ))
+            await session.commit()

@@ -27,7 +27,7 @@ chutes_api_headers: dict = {
     "Content-Type": "application/json"
 }
 
-def search_recent_tweets(netuid: int, tweet_count: int = 20) -> dict | None:
+def search_recent_tweets(netuid: int, tweet_count: int = 15) -> dict | None:
     """Fetches recent tweets about the given netuid.
     
     Args:
@@ -38,16 +38,20 @@ def search_recent_tweets(netuid: int, tweet_count: int = 20) -> dict | None:
     """
     params = {
         "query": f"Bittensor netuid {netuid}",
-        "sort": "Top",
-        "tweet_count": 10
+        "tweet_count": tweet_count
     }
 
-    response = requests.get(url=datura_api_url, headers=datura_api_headers, params=params)
+    try:
+        response = requests.get(url=datura_api_url, headers=datura_api_headers, params=params)
 
-    if response.status_code == 200:
-        return response.json()
-    else:
-        logger.error(f"Search recent tweets failed: {str(response.json())}")
+        if response.status_code == 200:
+            logger.info(f"Search recent tweets successful: {response.json()}")
+            return response.json()
+        else:
+            logger.error(f"Search recent tweets failed: {str(response.json())}")
+            return None
+    except Exception as e:
+        logger.error(f"Search recent tweets failed: {str(e)}")
         return None
     
 def perform_sentiment_analysis(text: str) -> int | None:
@@ -101,7 +105,7 @@ def sentiment_analysis_on_recent_tweets(netuid: int) -> int | None:
     """
     recent_tweets = search_recent_tweets(netuid)
 
-    if recent_tweets is None:
+    if recent_tweets is None or len(recent_tweets) == 0:
         return None
 
     recent_tweets_string: str = ""
