@@ -63,4 +63,9 @@ def sentiment_analysis_and_staking(netuid: int = 18, hotkey: str = "5FFApaS75bv5
 
 @celery.task
 def test_task():
-    print("Test task")
+    print("Test task ran.")
+    return True
+
+# If our entrypoint is this file, run the celery worker.
+if __name__ == "__main__":
+    celery.start()

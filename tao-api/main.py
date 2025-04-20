@@ -11,7 +11,6 @@ from async_substrate_interface import AsyncSubstrateInterface
 from tao_redis import TaoRedis
 from tao_celery import celery
 from tao_tests import TaoTests
-from tao_wallet import TaoWallet
 from decouple import config
 import asyncio
 import uvicorn
