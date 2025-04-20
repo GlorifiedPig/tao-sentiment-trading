@@ -1,4 +1,5 @@
-#mysqlclient
+asyncmy
+sqlalchemy[asyncio]
 fastapi
 bittensor
 uvicorn

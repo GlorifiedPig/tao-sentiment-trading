@@ -9,6 +9,7 @@ from async_substrate_interface import AsyncSubstrateInterface
 from tao_redis import TaoRedis
 from tao_celery import celery_instance
 from tao_tests import TaoTests
+from tao_db import TaoDB
 from decouple import config
 import asyncio
 import uvicorn
@@ -27,8 +28,9 @@ DATURA_API_KEY: str = config("DATURA_API_KEY")
 CHUTES_API_KEY: str = config("CHUTES_API_KEY")
 
 # Configure Logger
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+logging.getLogger("websockets.client").setLevel(logging.WARNING)
 
 # Utils
 async def exhaust(qmr):
@@ -206,6 +208,11 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
                 raise HTTPException(status_code=400, detail="Invalid hotkey")
 
             dividends = await get_tao_dividends_per_subnet(netuid, hotkey)
+
+            if trade:
+                logger.info(f"Sending task to stake on netuid {netuid} and hotkey {hotkey}.")
+                task_id = celery_instance.send_task("tao_celery.sentiment_analysis_and_staking", args=[netuid, hotkey])
+                logger.info(f"Task ID: {task_id}")
         elif netuid is not None:
             dividends = await get_tao_dividends_per_subnet_netuid(netuid)
 
@@ -246,4 +253,4 @@ async def health():
     return {"status": "ok"}
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
