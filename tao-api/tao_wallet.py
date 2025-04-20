@@ -85,6 +85,6 @@ class TaoWallet:
             print(f"Error unstaking: {e}")
             return False
     
-    async def test_stakes(self):
-        await self.add_stake(netuid=0, amount=0.03)
-        await self.unstake(netuid=0, amount=0.01)
+    # async def test_stakes(self):
+    #     await self.add_stake(netuid=0, amount=0.03)
+    #     await self.unstake(netuid=0, amount=0.01)

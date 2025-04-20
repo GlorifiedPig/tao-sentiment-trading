@@ -46,11 +46,6 @@ celery.send_task("tao_celery.sentiment_analysis_on_recent_tweets", args=[10])
 
 substrate: AsyncSubstrateInterface = AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443", ss58_format=SS58_FORMAT)
 
-# Test staking
-# NOTE: REMOVE THIS!
-tao_wallet_instance: TaoWallet = TaoWallet()
-asyncio.run(tao_wallet_instance.test_stakes())
-
 async def get_total_networks() -> int:
     """Fetches the total number of networks from the blockchain.
 
