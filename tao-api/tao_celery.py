@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 # Logic
 tao_wallet_instance: TaoWallet = TaoWallet()
 tao_db_instance: TaoDB = TaoDB()
+asyncio.run(tao_db_instance.create_engine())
 
 celery_instance = Celery(
     "tao_celery",

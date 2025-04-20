@@ -30,7 +30,10 @@ CHUTES_API_KEY: str = config("CHUTES_API_KEY")
 # Configure Logger
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+# Lower level on loggers from external libraries
 logging.getLogger("websockets.client").setLevel(logging.WARNING)
+logging.getLogger("python_multipart.multipart").setLevel(logging.WARNING)
 
 # Utils
 async def exhaust(qmr):
@@ -40,6 +43,7 @@ async def exhaust(qmr):
     return r
 
 # Logic
+tao_db_instance: TaoDB = TaoDB()
 tao_redis_instance: TaoRedis = TaoRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 tao_tests_instance: TaoTests = TaoTests()
 
@@ -192,6 +196,9 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
     
     if type(hotkey) is str and netuid is None:
         raise HTTPException(status_code=400, detail="Hotkey provided but no netuid")
+    
+    # Insert dividend request into DB
+    await tao_db_instance.persist_dividend_request(netuid, hotkey, trade)
     
     cached: bool
     dividends: float

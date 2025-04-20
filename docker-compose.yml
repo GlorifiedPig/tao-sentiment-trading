@@ -1,19 +1,19 @@
 services:
-  # mysql:
-  #   image: mysql
-  #   restart: on-failure:3
-  #   env_file:
-  #     - .env
-  #   expose:
-  #     - "3306"
-  #   volumes:
-  #     - mysql:/var/lib/mysql
-  #   healthcheck:
-  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #     start_period: 10s
+  mysql:
+    image: mysql
+    restart: on-failure:3
+    env_file:
+      - .env
+    expose:
+      - "3306"
+    volumes:
+      - mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   # TODO: Enable memory overcommit for redis.
   redis:
@@ -48,8 +48,8 @@ services:
     env_file:
       - .env
     depends_on:
-    #   mysql:
-    #     condition: service_healthy
+        mysql:
+          condition: service_healthy
         redis:
           condition: service_healthy
         worker:
@@ -60,5 +60,5 @@ services:
     ports:
       - "8000:8000"
 volumes:
-  # mysql:
+  mysql:
   tao-api:
