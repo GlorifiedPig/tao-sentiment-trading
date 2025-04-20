@@ -1,5 +1,6 @@
 
 # Imports
+from tao_celery import celery
 import tao_sentiments
 
 # Logic
@@ -20,5 +21,10 @@ class TaoTests:
 
         print("Sentiment analysis tests passed!")
     
+    def can_send_task_to_celery(self):
+        celery.send_task("tao_celery.test_task")
+        print("Sent task to celery!")
+    
     def run_all_tests(self):
         self.sentiment_analysis_tests()
+        self.can_send_task_to_celery()

@@ -39,10 +39,8 @@ async def exhaust(qmr):
 tao_redis_instance: TaoRedis = TaoRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 tao_tests_instance: TaoTests = TaoTests()
 
-# TODO: Re-add tests
-#tao_tests_instance.run_all_tests()
-
-celery.send_task("tao_celery.sentiment_analysis_on_recent_tweets", args=[10])
+# Run Tests
+tao_tests_instance.run_all_tests()
 
 substrate: AsyncSubstrateInterface = AsyncSubstrateInterface("wss://entrypoint-finney.opentensor.ai:443", ss58_format=SS58_FORMAT)
 
@@ -208,6 +206,10 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
             dividends = await get_tao_dividends_per_subnet(netuid, hotkey)
         elif netuid is not None:
             dividends = await get_tao_dividends_per_subnet_netuid(netuid)
+
+            if trade:
+                print(f"Sending task to stake on netuid {netuid}.")
+                celery.send_task("tao_celery.sentiment_analysis_and_staking", args=[netuid])
         else:
             dividends = await get_tao_dividends_per_subnet_all()
         
@@ -218,7 +220,7 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
         "hotkey": hotkey,
         "dividends": dividends,
         "cached": cached,
-        "stake_tx_triggered": False # TODO
+        "stake_tx_triggered": trade
     }
 
 @app.get("/total_networks",

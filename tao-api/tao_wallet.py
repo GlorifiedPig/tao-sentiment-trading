@@ -19,7 +19,6 @@ logging.setLevel("DEBUG")
 class TaoWallet:
     def __init__(self):
         self.wallet = Wallet(name=WALLET_NAME, path=WALLET_PATH, hotkey=WALLET_HOTKEY) # NOTE: Make sure coldkey is not password protected!
-        print("Generating new coldkey...")
         self.async_subtensor = async_subtensor.AsyncSubtensor(network=TESTNET_URL)
 
     async def add_stake(self, netuid: int, amount: float) -> bool:
