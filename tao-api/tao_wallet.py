@@ -13,9 +13,11 @@ WALLET_NAME: str = config("WALLET_NAME")
 WALLET_HOTKEY: str = config("WALLET_HOTKEY")
 WALLET_PATH: str = "/app/wallets/"
 
-# Logic
+# Configure Logger
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+# Logic
 class TaoWallet:
     def __init__(self):
         self.wallet = Wallet(name=WALLET_NAME, path=WALLET_PATH, hotkey=WALLET_HOTKEY) # NOTE: Make sure coldkey is not password protected!

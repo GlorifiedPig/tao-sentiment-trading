@@ -15,6 +15,7 @@ services:
   #     retries: 5
   #     start_period: 10s
 
+  # TODO: Enable memory overcommit for redis.
   redis:
     image: redis
     restart: on-failure:3
@@ -30,7 +31,7 @@ services:
   worker:
     build:
       context: ./tao-api
-    command: celery -A tao_celery worker --loglevel=info --uid=taoapi
+    command: celery -A tao_celery worker --loglevel=debug --uid=taoapi -E
     restart: on-failure:3
     env_file:
       - .env

@@ -9,7 +9,7 @@ from bittensor.core.settings import SS58_FORMAT
 from bittensor.utils import is_valid_bittensor_address_or_public_key
 from async_substrate_interface import AsyncSubstrateInterface
 from tao_redis import TaoRedis
-from tao_celery import celery
+from tao_celery import celery_instance
 from tao_tests import TaoTests
 from decouple import config
 import asyncio
@@ -208,7 +208,7 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
 
             if trade:
                 print(f"Sending task to stake on netuid {netuid}.")
-                celery.send_task("tao_celery.sentiment_analysis_and_staking", args=[netuid])
+                celery_instance.send_task("tao_celery.sentiment_analysis_and_staking", args=[netuid])
         else:
             dividends = await get_tao_dividends_per_subnet_all()
         

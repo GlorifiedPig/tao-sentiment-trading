@@ -5,4 +5,4 @@ uvicorn
 redis[hiredis]
 python-decouple
 python-multipart
-celery
+celery[redis]

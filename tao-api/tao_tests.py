@@ -1,7 +1,12 @@
 
 # Imports
-from tao_celery import celery, test_task
+from tao_celery import celery_instance, test_task
 import tao_sentiments
+import time
+
+# Configure Logger
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Logic
 class TaoTests:
@@ -19,11 +24,11 @@ class TaoTests:
         assert negative_score is not None
         assert negative_score < 0
 
-        print("Sentiment analysis tests passed!")
+        logger.info("Sentiment analysis tests passed!")
     
     def can_send_task_to_celery(self):
-        print("Sending task to celery...")
-        test_task.delay()
+        logger.info("Sending task to celery...")
+        result = test_task.delay()
     
     def run_all_tests(self):
         self.sentiment_analysis_tests()
