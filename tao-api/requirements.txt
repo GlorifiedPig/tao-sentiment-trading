@@ -7,3 +7,4 @@ redis[hiredis]
 python-decouple
 python-multipart
 celery[redis]
+pytest
