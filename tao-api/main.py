@@ -9,8 +9,9 @@ from async_substrate_interface import AsyncSubstrateInterface
 from tao_redis import TaoRedis
 from tao_celery import celery_instance
 from tao_tests import TaoTests
-from tao_db import TaoDB
+from tao_db import TaoDB, TaoDB_Dividend_Requests
 from decouple import config
+from datetime import datetime
 import asyncio
 import uvicorn
 import logging
@@ -198,7 +199,14 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
         raise HTTPException(status_code=400, detail="Hotkey provided but no netuid")
     
     # Insert dividend request into DB
-    await tao_db_instance.persist_dividend_request(netuid, hotkey, trade)
+    with tao_db_instance.session_handler() as session:
+        session.add(TaoDB_Dividend_Requests(
+            timestamp=datetime.now(),
+            netuid=netuid,
+            hotkey=hotkey,
+            trade=trade
+        ))
+        session.commit()
     
     cached: bool
     dividends: float

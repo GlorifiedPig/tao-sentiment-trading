@@ -4,7 +4,7 @@ from celery import Celery
 from decouple import config
 from tao_wallet import TaoWallet
 from tao_db import TaoDB, TaoDB_Sentiment
-import datetime
+from datetime import datetime
 import tao_sentiments
 import logging
 import asyncio
@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 # Logic
 tao_wallet_instance: TaoWallet = TaoWallet()
 tao_db_instance: TaoDB = TaoDB()
-asyncio.run(tao_db_instance.create_engine())
 
 celery_instance = Celery(
     "tao_celery",
@@ -77,7 +76,15 @@ def sentiment_analysis_and_staking(netuid: int = 18, hotkey: str = "5FFApaS75bv5
             logger.info(f"Failed to unstake {stake_amount} on netuid {netuid}.")
 
     # Insert sentiment into DB
-    asyncio.run(tao_db_instance.persist_sentiment(netuid, hotkey, sentiment_score, stake_amount))
+    with tao_db_instance.session_handler() as session:
+        session.add(TaoDB_Sentiment(
+            timestamp=datetime.now(),
+            netuid=netuid,
+            hotkey=hotkey,
+            sentiment=sentiment_score,
+            stake_amount=stake_amount
+        ))
+        session.commit()
 
     return success
 
