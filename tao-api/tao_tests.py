@@ -3,6 +3,7 @@
 from tao_celery import celery_instance, test_task
 import tao_sentiments
 import time
+import logging
 
 # Configure Logger
 logging.basicConfig(level=logging.DEBUG)

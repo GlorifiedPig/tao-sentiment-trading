@@ -14,7 +14,7 @@ from tao_tests import TaoTests
 from decouple import config
 import asyncio
 import uvicorn
-
+import logging
 # Configuration
 EXAMPLE_HOTKEY: str = "5FFApaS75bv5pJHfAp2FVLBj9ZaXuFDjEypsaBNc1wCfe52v"
 EXAMPLE_NETUID: int = 18
@@ -26,6 +26,10 @@ REDIS_PORT: int = config("REDIS_PORT", default=6379)
 REDIS_DB: int = config("REDIS_DB", default=0)
 DATURA_API_KEY: str = config("DATURA_API_KEY")
 CHUTES_API_KEY: str = config("CHUTES_API_KEY")
+
+# Configure Logger
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Utils
 async def exhaust(qmr):
@@ -207,8 +211,9 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
             dividends = await get_tao_dividends_per_subnet_netuid(netuid)
 
             if trade:
-                print(f"Sending task to stake on netuid {netuid}.")
-                celery_instance.send_task("tao_celery.sentiment_analysis_and_staking", args=[netuid])
+                logger.info(f"Sending task to stake on netuid {netuid}.")
+                task_id = celery_instance.send_task("tao_celery.sentiment_analysis_and_staking", args=[netuid])
+                logger.info(f"Task ID: {task_id}")
         else:
             dividends = await get_tao_dividends_per_subnet_all()
         
