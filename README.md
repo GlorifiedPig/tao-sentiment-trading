@@ -88,9 +88,13 @@ Once the services are running, you can access:
 
 ## API Authentication
 
-The API uses basic authentication. Default credentials:
+The API uses OAuth2. Default credentials:
 - Username: `admin`
 - Password: `admin`
+
+Make a POST request to `http://localhost:8000/api/v1/token` to get the Bearer token.
+
+It is hard coded to `fake-token`, so you could also just add the `Authorization: Bearer fake-token` header to all requests.
 
 ## Demonstration Video
 Work in Progress
