@@ -3,9 +3,15 @@
 from decouple import config
 import requests
 from typing import Optional
+import logging
+
 # Configuration
 DATURA_API_KEY: str = config("DATURA_API_KEY")
 CHUTES_API_KEY: str = config("CHUTES_API_KEY")
+
+# Configure Logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Logic
 datura_api_url: str = "https://apis.datura.ai/twitter"
@@ -41,10 +47,10 @@ def search_recent_tweets(netuid: int, tweet_count: int = 20) -> dict | None:
     if response.status_code == 200:
         return response.json()
     else:
-        print(f"Search recent tweets failed: {str(response.json())}")
+        logger.error(f"Search recent tweets failed: {str(response.json())}")
         return None
     
-def perform_sentiment_analysis(text: str, override_prompt: Optional[str] = None) -> int | None:
+def perform_sentiment_analysis(text: str) -> int | None:
     """Performs sentiment analysis on the given text.
 
     Args:
@@ -53,33 +59,35 @@ def perform_sentiment_analysis(text: str, override_prompt: Optional[str] = None)
     Returns:
         int | None: The sentiment score, or None if the score is out of range or the request fails.
     """
-    prompt = override_prompt if override_prompt is not None else "Give me a sentiment score of -100 to 100 for the following text, please only return the score and nothing else and make sure it is within the range of -100 to 100: "
+    prompt = f"Return ONLY a sentiment score of -100 to 100 for the following text: {text}\nPlease make sure you ONLY return the sentiment score number (-100 to 100) and nothing else."
 
     params = {
         "model": "unsloth/Llama-3.2-3B-Instruct",
-        "messages": [{"role": "user", "content": prompt + text}],
-        "stream": False
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": False,
+        "max_tokens": 1024,
+        "temperature": 0.6
     }
 
-    response = requests.post(url=chutes_api_url, headers=chutes_api_headers, json=params)
+    try:
+        response = requests.post(url=chutes_api_url, headers=chutes_api_headers, json=params)
 
-    if response.status_code == 200:
-        try:
+        if response.status_code == 200:
             response_data = response.json()
-            content = response_data.get('choices', [{}])[0].get('message', {}).get('content', '')
-            
-            score = int(''.join(c for c in content if c.isdigit() or c == '-'))
+            content: str = response_data.get("choices", [{}])[0].get("message", {}).get("content", "")
+            score: int = int(content.strip())
 
             if -100 <= score <= 100:
+                logger.info(f"Sentiment analysis score: {score}")
                 return score
             else:
-                print(f"Sentiment score out of range: {score}")
+                logger.error(f"Sentiment analysis score is out of range: {score}")
                 return None
-        except (ValueError, KeyError, IndexError) as e:
-            print(f"Error parsing sentiment score: {e}")
+        else:
+            logger.error(f"Sentiment analysis failed: {str(response.json())}")
             return None
-    else:
-        print(f"Sentiment analysis failed: {str(response.text)}")
+    except Exception as e:
+        logger.error(f"Sentiment analysis failed: {str(e)}")
         return None
 
 def sentiment_analysis_on_recent_tweets(netuid: int) -> int | None:
@@ -93,16 +101,13 @@ def sentiment_analysis_on_recent_tweets(netuid: int) -> int | None:
     """
     recent_tweets = search_recent_tweets(netuid)
 
-    # FIXME This returns None too often, get the prompt better so it returns -100 to 100.
     if recent_tweets is None:
         return None
 
-    appended_sentiment_analysis_prompt: str = "The following is a list of tweets about a Bittensor subnet, with each tweet starting with \"TWEET START: \". Please consider all the tweets and give me a sentiment score of -100 to 100 for the entire list, with the idea being to give a general sentiment score of how the community is feeling about the subnet, please only return one singular score number and nothing else and make sure it is within the range of -100 to 100: "
-
     recent_tweets_string: str = ""
     for tweet in recent_tweets:
-        recent_tweets_string += f"TWEET START: {tweet}\n"
+        recent_tweets_string += f"{tweet}\n"
 
-    sentiment_score: int = perform_sentiment_analysis(recent_tweets_string, appended_sentiment_analysis_prompt)
+    sentiment_score: int = perform_sentiment_analysis(recent_tweets_string)
 
     return sentiment_score

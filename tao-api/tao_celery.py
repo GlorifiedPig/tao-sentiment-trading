@@ -10,7 +10,7 @@ import logging
 CELERY_BROKER_URL: str = config("CELERY_BROKER_URL")
 
 # Configure Logger
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Logic
