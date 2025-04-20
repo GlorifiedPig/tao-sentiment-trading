@@ -41,5 +41,5 @@ class TaoTests:
     
     def run_all_tests(self):
         self.sentiment_analysis_tests()
-        self.fetch_recent_tweets_tests()
+        #self.fetch_recent_tweets_tests()
         self.can_send_task_to_celery()

@@ -45,7 +45,7 @@ def search_recent_tweets(netuid: int, tweet_count: int = 15) -> dict | None:
         response = requests.get(url=datura_api_url, headers=datura_api_headers, params=params)
 
         if response.status_code == 200:
-            logger.info(f"Search recent tweets successful: {response.json()}")
+            logger.info(f"Search recent tweets successful, tweet count: {len(response.json())}")
             return response.json()
         else:
             logger.error(f"Search recent tweets failed: {str(response.json())}")

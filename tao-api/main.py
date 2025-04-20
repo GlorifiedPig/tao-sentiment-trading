@@ -187,7 +187,7 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
     
     total_networks: int = await get_total_networks()
 
-    if type(netuid) is int and (netuid < 1 or netuid > total_networks):
+    if type(netuid) is int and (netuid < 0 or netuid > total_networks):
         raise HTTPException(status_code=400, detail="Invalid netuid")
     
     if type(hotkey) is str and netuid is None:
