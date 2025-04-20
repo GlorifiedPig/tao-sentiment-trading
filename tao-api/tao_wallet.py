@@ -27,6 +27,8 @@ class TaoWallet:
         try:
             subnet = await self.async_subtensor.subnet(netuid=netuid)
 
+            hotkey: str = subnet.owner_hotkey
+
             block_hash = await self.async_subtensor.substrate.get_chain_head()
 
             amount_balance: Balance = tao(amount)
@@ -42,13 +44,13 @@ class TaoWallet:
                 logger.info(f"Not enough balance to stake {amount} on {netuid}")
                 return False
 
-            logger.info(f"Staking {amount} on {netuid} with hotkey {subnet.owner_hotkey}")
+            logger.info(f"Staking {amount} on {netuid} with hotkey {hotkey}")
 
             success: bool = await self.async_subtensor.add_stake(
                 wallet=self.wallet,
                 netuid=netuid,
                 amount=amount_balance,
-                hotkey_ss58=subnet.owner_hotkey,
+                hotkey_ss58=hotkey,
                 wait_for_inclusion=True,
                 wait_for_finalization=False,
                 safe_staking=True,
@@ -66,12 +68,29 @@ class TaoWallet:
     
     async def unstake(self, netuid: int, amount: float) -> bool:
         try:
+            subnet = await self.async_subtensor.subnet(netuid=netuid)
+            hotkey: str = subnet.owner_hotkey
+
             balance: Balance = tao(amount)
+
+            staked_amount = await self.async_subtensor.get_stake(
+                netuid=netuid,
+                coldkey_ss58=self.wallet.coldkeypub.ss58_address,
+                hotkey_ss58=hotkey
+            )
+            logger.info(f"Staked amount: {staked_amount}")
+
+            if staked_amount < balance:
+                logger.info(f"Not enough staked amount to unstake {amount} on {netuid}")
+                return False
+            
+            logger.info(f"Unstaking {amount} on {netuid} with hotkey {hotkey}")
+
             success: bool = await self.async_subtensor.unstake(
                 wallet=self.wallet,
                 netuid=netuid,
                 amount=balance,
-                hotkey_ss58=self.wallet.hotkey_str,
+                hotkey_ss58=hotkey,
                 wait_for_inclusion=True,
                 wait_for_finalization=False,
                 safe_staking=False,
