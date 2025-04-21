@@ -14,7 +14,7 @@ CELERY_BROKER_URL: str = config("CELERY_BROKER_URL")
 
 # Configure Logger
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 # Logic
 tao_wallet_instance: TaoWallet = TaoWallet()
@@ -67,6 +67,7 @@ def sentiment_analysis_and_staking(netuid: int = 18, hotkey: str = "5FFApaS75bv5
         else:
             logger.info(f"Failed to stake {stake_amount} on netuid {netuid}.")
     elif stake_amount < 0:
+        stake_amount = abs(stake_amount)
         success: bool = asyncio.run(tao_wallet_instance.unstake(netuid, stake_amount, hotkey))
 
         if success:
