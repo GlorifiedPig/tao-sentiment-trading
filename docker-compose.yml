@@ -14,6 +14,19 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+  
+  phpmyadmin:
+    image: phpmyadmin
+    restart: on-failure:3
+    ports:
+      - "8080:80"
+    environment:
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
+      - PMA_ABSOLUTE_URI=http://localhost:8080/
+    depends_on:
+      mysql:
+        condition: service_healthy
 
   # TODO: Enable memory overcommit for redis.
   redis:
@@ -31,7 +44,7 @@ services:
   worker:
     build:
       context: ./tao-api
-    command: celery -A tao_celery worker --loglevel=debug --uid=taoapi -E
+    command: celery -A tao_celery worker --loglevel=info --uid=taoapi -E
     restart: on-failure:3
     env_file:
       - .env
