@@ -38,7 +38,6 @@ def perform_sentiment_analysis(text: str) -> int:
 def sentiment_analysis_on_recent_tweets(netuid: int) -> int | None:
     return tao_sentiments.sentiment_analysis_on_recent_tweets(netuid)
 
-# TODO: Does hotkey need to be passed?
 @celery_instance.task
 def sentiment_analysis_and_staking(netuid: int = 18, hotkey: str = "5FFApaS75bv5pJHfAp2FVLBj9ZaXuFDjEypsaBNc1wCfe52v") -> bool:
     logger.info("Starting sentiment analysis and staking...")
