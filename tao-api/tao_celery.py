@@ -1,4 +1,3 @@
-
 # Imports
 from celery import Celery
 from decouple import config
@@ -59,21 +58,30 @@ def sentiment_analysis_and_staking(netuid: int = 18, hotkey: str = "5FFApaS75bv5
         return False
     
     success: bool = False
-    if stake_amount > 0:
-        success: bool = asyncio.run(tao_wallet_instance.add_stake(netuid, stake_amount, hotkey))
+    
+    # Create a new event loop for this task
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
+    try:
+        if stake_amount > 0:
+            success: bool = loop.run_until_complete(tao_wallet_instance.add_stake(netuid, stake_amount, hotkey))
 
-        if success:
-            logger.info(f"Successfully staked {stake_amount} on netuid {netuid}.")
-        else:
-            logger.info(f"Failed to stake {stake_amount} on netuid {netuid}.")
-    elif stake_amount < 0:
-        stake_amount = abs(stake_amount)
-        success: bool = asyncio.run(tao_wallet_instance.unstake(netuid, stake_amount, hotkey))
+            if success:
+                logger.info(f"Successfully staked {stake_amount} on netuid {netuid}.")
+            else:
+                logger.info(f"Failed to stake {stake_amount} on netuid {netuid}.")
+        elif stake_amount < 0:
+            stake_amount = abs(stake_amount)
+            success: bool = loop.run_until_complete(tao_wallet_instance.unstake(netuid, stake_amount, hotkey))
 
-        if success:
-            logger.info(f"Successfully unstaked {stake_amount} on netuid {netuid}.")
-        else:
-            logger.info(f"Failed to unstake {stake_amount} on netuid {netuid}.")
+            if success:
+                logger.info(f"Successfully unstaked {stake_amount} on netuid {netuid}.")
+            else:
+                logger.info(f"Failed to unstake {stake_amount} on netuid {netuid}.")
+    finally:
+        # Clean up the event loop
+        loop.close()
 
     # Insert sentiment into DB
     with tao_db_instance.session_handler() as session:
