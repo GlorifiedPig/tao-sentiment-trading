@@ -72,6 +72,8 @@ cp -r ~/.bittensor/wallets/* ./wallets/
 
 Make sure the wallet files have the correct permissions and the docker container has access to them.
 
+**Please make sure your wallet is not password protected.**
+
 ### 4. Start the Services
 
 Build and start the Docker containers:
