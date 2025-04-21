@@ -24,6 +24,16 @@ class TaoWallet:
         self.async_subtensor = async_subtensor.AsyncSubtensor(network=TESTNET_URL)
 
     async def add_stake(self, netuid: int, amount: float, hotkey: str | None) -> bool:
+        """Adds a stake to a subnet.
+        
+        Args:
+            netuid (int): The netuid of the subnet to stake on.
+            amount (float): The amount of TAO to stake.
+            hotkey (str | None): The hotkey to stake on, or None if the subnet owner hotkey should be used.
+
+        Returns:
+            bool: True if the stake was added successfully, False otherwise.
+        """
         try:
             subnet = await self.async_subtensor.subnet(netuid=netuid)
 
@@ -70,6 +80,16 @@ class TaoWallet:
             return False
     
     async def unstake(self, netuid: int, amount: float, hotkey: str | None) -> bool:
+        """Unstakes a stake from a subnet.
+        
+        Args:
+            netuid (int): The netuid of the subnet to unstake from.
+            amount (float): The amount of TAO to unstake.
+            hotkey (str | None): The hotkey to unstake from, or None if the subnet owner hotkey should be used.
+
+        Returns:
+            bool: True if the unstake was successful, False otherwise.
+        """
         try:
             subnet = await self.async_subtensor.subnet(netuid=netuid)
 
