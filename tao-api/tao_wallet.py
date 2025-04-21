@@ -23,11 +23,14 @@ class TaoWallet:
         self.wallet = Wallet(name=WALLET_NAME, path=WALLET_PATH, hotkey=WALLET_HOTKEY) # NOTE: Make sure coldkey is not password protected!
         self.async_subtensor = async_subtensor.AsyncSubtensor(network=TESTNET_URL)
 
-    async def add_stake(self, netuid: int, amount: float) -> bool:
+    async def add_stake(self, netuid: int, amount: float, hotkey: str | None) -> bool:
         try:
             subnet = await self.async_subtensor.subnet(netuid=netuid)
 
-            hotkey: str = subnet.owner_hotkey
+            if hotkey is None:
+                hotkey: str = subnet.owner_hotkey
+            else:
+                hotkey: str = hotkey
 
             block_hash = await self.async_subtensor.substrate.get_chain_head()
 
@@ -66,12 +69,16 @@ class TaoWallet:
             logger.error(traceback.format_exc())
             return False
     
-    async def unstake(self, netuid: int, amount: float) -> bool:
+    async def unstake(self, netuid: int, amount: float, hotkey: str | None) -> bool:
         try:
             subnet = await self.async_subtensor.subnet(netuid=netuid)
-            hotkey: str = subnet.owner_hotkey
 
-            balance: Balance = tao(amount)
+            if hotkey is None:
+                hotkey: str = subnet.owner_hotkey
+            else:
+                hotkey: str = hotkey
+
+            to_unstake_balance: Balance = tao(amount)
 
             staked_amount = await self.async_subtensor.get_stake(
                 netuid=netuid,
@@ -80,7 +87,7 @@ class TaoWallet:
             )
             logger.info(f"Staked amount: {staked_amount}")
 
-            if staked_amount < balance:
+            if staked_amount < to_unstake_balance:
                 logger.info(f"Not enough staked amount to unstake {amount} on {netuid}")
                 return False
             
@@ -89,7 +96,7 @@ class TaoWallet:
             success: bool = await self.async_subtensor.unstake(
                 wallet=self.wallet,
                 netuid=netuid,
-                amount=balance,
+                amount=to_unstake_balance,
                 hotkey_ss58=hotkey,
                 wait_for_inclusion=True,
                 wait_for_finalization=False,
