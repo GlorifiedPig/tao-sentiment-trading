@@ -1,6 +1,6 @@
-# Bittensor Sentiment-Based Trading
+# Bittensor Sentiment-Based Staking
 
-This is a demonstration project that analyzes Twitter sentiment regarding Bittensor networks and automatically trades Tao coins based on the sentiment analysis. The project uses datura.ai and chutes.ai to analyze tweets and make trading decisions.
+This is a demonstration project that analyzes Twitter sentiment regarding Bittensor networks and automatically stakes Tao coins based on the sentiment analysis. The project uses datura.ai and chutes.ai to analyze tweets and make trading decisions.
 
 It exposes an API endpoint, which connects to datura.ai to fetch the latest tweets regarding a chosen netuid, and then connects to chutes.ai to analyze sentiment.
 
