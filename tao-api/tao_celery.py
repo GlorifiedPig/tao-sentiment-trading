@@ -50,7 +50,7 @@ def sentiment_analysis_and_staking(netuid: int = 18, hotkey: str = "5FFApaS75bv5
         logger.info("Sentiment score is None, not going to stake.")
         return False
     
-    stake_amount: float = sentiment_score * 0.1
+    stake_amount: float = sentiment_score * 0.01
 
     logger.info(f"Stake amount: {stake_amount}")
 
