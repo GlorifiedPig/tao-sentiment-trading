@@ -5,6 +5,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from bittensor.core.settings import SS58_FORMAT
 from bittensor.utils import is_valid_bittensor_address_or_public_key
+from bittensor.core.chain_data import decode_account_id
 from async_substrate_interface import AsyncSubstrateInterface
 from tao_redis import TaoRedis
 from tao_celery import celery_instance
@@ -67,7 +68,7 @@ async def get_total_networks() -> int:
         tao_redis_instance.set_total_networks(total_networks)
         return total_networks
 
-async def get_tao_dividends_per_subnet(netuid: int, hotkey: str) -> float:
+async def get_tao_dividends_per_subnet(netuid: int, hotkey: str) -> dict[str, float]:
     """Fetches dividends value from our specified netuid and hotkey.
 
     Args:
@@ -75,32 +76,21 @@ async def get_tao_dividends_per_subnet(netuid: int, hotkey: str) -> float:
         hotkey (str): The hotkey to fetch the value for.
 
     Returns:
-        float: The total dividend value for specified netuid and hotkey.
+        dict[str, float]: The total dividend value for specified netuid and hotkey.
     """
-    cached_dividends = tao_redis_instance.get_tao_dividends(netuid, hotkey)
-
-    if cached_dividends is not None:
-        return cached_dividends
-
     async with substrate:
         result = await substrate.query("SubtensorModule", "TaoDividendsPerSubnet", [netuid, hotkey])
-        tao_redis_instance.set_tao_dividends(result.value, netuid, hotkey)
-        return float(result.value)
+        return { hotkey: float(result.value) }
 
-async def get_tao_dividends_per_subnet_netuid(netuid: int) -> float:
+async def get_tao_dividends_per_subnet_netuid(netuid: int) -> dict[str, float]:
     """Fetches total dividends from our specified netuid.
 
     Args:
         netuid (int): The netuid to fetch the value for.
 
     Returns:
-        float: The total dividend value.
+        dict[str, float]: The total dividend value.
     """
-    cached_dividends = tao_redis_instance.get_tao_dividends(netuid)
-
-    if cached_dividends is not None:
-        return cached_dividends
-
     async with substrate:
         block_hash = await substrate.get_chain_head()
 
@@ -111,22 +101,22 @@ async def get_tao_dividends_per_subnet_netuid(netuid: int) -> float:
             block_hash=block_hash
         )
 
-        total_dividends: float = 0
-        async for _, v in result:
-            total_dividends += v.value # TODO: This should not return the total, it should return key-value mappings of the amount of dividends associated with each hotkey.
+        dividend_results = {}
 
-        tao_redis_instance.set_tao_dividends(total_dividends, netuid)
+        async for k, v in result:
+            hotkey: str = decode_account_id(k)
+            dividend_results[hotkey] = v.value
 
-        return float(total_dividends)
+        return dividend_results
 
-async def get_tao_dividends_per_subnet_all() -> float:
+async def get_tao_dividends_per_subnet_all() -> dict[str, float]:
     """Fetches total dividends from all netuids.
     
     Args:
         None
 
     Returns:
-        float: The total dividend value for all netuids.
+        dict[str, float]: The total dividend value for all netuids.
     """
     async with substrate:
         block_hash = await substrate.get_chain_head()
@@ -143,13 +133,16 @@ async def get_tao_dividends_per_subnet_all() -> float:
         ]
         tasks = [exhaust(task) for task in tasks]
 
-        total_dividends: float = 0
+        total_dividends: dict[str, float] = {}
 
         for future in asyncio.as_completed(tasks):
             result = await future
-            total_dividends += sum(v.value for _, v in result) # TODO: This should not return the total, it should return key-value mappings of the amount of dividends associated with each netuid and hotkey.
+            for hotkey, dividends in result:
+                if hotkey not in total_dividends:
+                    total_dividends[hotkey] = 0
+                total_dividends[hotkey] += dividends
 
-        return float(total_dividends)
+        return total_dividends
 
 # FastAPI
 app = FastAPI(
@@ -205,7 +198,7 @@ async def tao_dividends(token: Annotated[str, Depends(oauth2_scheme)], netuid: O
         session.commit()
     
     cached: bool
-    dividends: float
+    dividends: dict[str, float]
 
     cached_dividend = tao_redis_instance.get_tao_dividends(netuid, hotkey)
 
