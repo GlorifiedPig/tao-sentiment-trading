@@ -1,4 +1,4 @@
-# Tao Sentiment-Based Trading
+# Bittensor Sentiment-Based Trading
 
 This is a demonstration project that analyzes Twitter sentiment regarding Bittensor networks and automatically trades Tao coins based on the sentiment analysis. The project uses datura.ai and chutes.ai to analyze tweets and make trading decisions.
 
@@ -13,6 +13,9 @@ This is all done on the test network.
 - Docker
 - Git
 - A Bittensor Wallet
+
+## Demonstration Video
+[You can find a demonstration video here](https://www.youtube.com/watch?v=dA7x4oWuc20)
 
 ## Getting Started
 
@@ -97,6 +100,3 @@ The API uses OAuth2. Default credentials:
 Make a POST request to `http://localhost:8000/api/v1/token` to get the Bearer token.
 
 It is hard coded to `fake-token`, so you could also just add the `Authorization: Bearer fake-token` header to all requests.
-
-## Demonstration Video
-Work in Progress
